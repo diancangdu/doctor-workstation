@@ -60,7 +60,7 @@ export default {
     <div v-if="role.patient" class="profile-section">
       <el-descriptions border direction="vertical" class="description-box">
         <el-descriptions-item label="患者编号">{{ personData?.patientId }}</el-descriptions-item>
-        <el-descriptions-item label="性别">{{ personData?.gender }}</el-descriptions-item>
+        <el-descriptions-item label="性别">{{ personData?.gender === 'male' ? '男' : '女' }}</el-descriptions-item>
         <el-descriptions-item label="联系地址">{{ personData?.address }}</el-descriptions-item>
         <el-descriptions-item label="出生日期">{{ personData?.dateOfBirth }}</el-descriptions-item>
         <el-descriptions-item label="紧急联系人">{{ personData?.emergencyContact}}</el-descriptions-item>
@@ -73,7 +73,7 @@ export default {
     <div v-if="role.doctor" class="profile-section">
       <el-descriptions border direction="vertical" class="description-box">
         <el-descriptions-item label="医生编号">{{ personData?.doctorId }}</el-descriptions-item>
-        <el-descriptions-item label="性别">{{ personData?.gender }}</el-descriptions-item>
+        <el-descriptions-item label="性别">{{ personData?.gender === 'male' ? '男' : '女' }}</el-descriptions-item>
         <el-descriptions-item label="所属部门"><i class="el-icon-s-flag" /> {{ personData?.department }}</el-descriptions-item>
         <el-descriptions-item label="从业年限"><i class="el-icon-s-promotion" /> {{ personData?.experienceYears }}</el-descriptions-item>
         <el-descriptions-item label="专业领域"><i class="el-icon-star-on" /> {{ personData?.specialty }}</el-descriptions-item>

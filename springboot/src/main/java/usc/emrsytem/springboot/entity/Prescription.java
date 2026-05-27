@@ -14,5 +14,7 @@ public class Prescription {
     private String duration;
     private String instructions;
     private String remarks;
+    private java.math.BigDecimal unitPrice;
+    private java.math.BigDecimal totalPrice;
     private Timestamp createdAt;
 }

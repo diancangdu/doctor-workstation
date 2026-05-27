@@ -81,7 +81,10 @@ export default {
         for (let i = 0; i < this.relationData.length; i++) {
           for (let j = 0; j < this.patientData.length; j++) {
             if (this.relationData[i].patientId === this.patientData[j].patientId) {
-              this.assignedPatientsData.push(this.patientData[j])
+              // 去重：同一 patientId 只 push 一次，防止重复调用 loadRelation() 导致数据重复
+              if (!this.assignedPatientsData.some(p => p.patientId === this.patientData[j].patientId)) {
+                this.assignedPatientsData.push(this.patientData[j])
+              }
             }
           }
         }
@@ -99,7 +102,6 @@ export default {
       }).then(res => {
         if (res.code === '200') {
           this.medicalRecordData = res.data.list
-          this.loadPatients()
           // console.log(this.medicalRecordData)
         } else {
           this.$message.error(res.msg)
@@ -286,6 +288,19 @@ export default {
         <el-link @click="viewImage">查看<i class="el-icon-view el-icon--right"></i></el-link>
       </el-descriptions-item>
     </el-descriptions>
+  </el-dialog>
+
+  <!-- 图片弹窗 -->
+  <el-dialog :visible.sync="imageDialogVisible" width="50%" title="查看图像">
+    <div v-if="selectedRow?.chart">
+      <img
+        v-for="(img, index) in selectedRow.chart.split(',')"
+        :key="index"
+        :src="img"
+        style="width: 100%; margin-bottom: 10px;"
+        alt="病历图片" />
+    </div>
+    <span v-else>无图片</span>
   </el-dialog>
 </div>
 </template>

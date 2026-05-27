@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="usc.emrsytem.springboot.mapper.RegistrationMapper">
+
+    <insert id="addRegistration" useGeneratedKeys="true" keyProperty="registrationId">
+        insert into registration (patient_id, patient_user_id, doctor_id, department, chief_complaint, queue_number)
+        values (#{patientId}, #{patientUserId}, #{doctorId}, #{department}, #{chiefComplaint}, #{queueNumber})
+    </insert>
+
+    <update id="startConsultation">
+        update registration set status = 'in_progress', consultation_time = NOW()
+        where registration_id = #{registrationId}
+    </update>
+
+    <update id="completeConsultation">
+        update registration set status = 'completed', completion_time = NOW()
+        where registration_id = #{registrationId}
+    </update>
+
+    <update id="cancelRegistration">
+        update registration set status = 'cancelled' where registration_id = #{registrationId}
+    </update>
+
+    <select id="listRegistrations" resultType="usc.emrsytem.springboot.entity.Registration">
+        select r.*, u1.username as patientName, u2.username as doctorName
+        from registration r
+        left join patient p on r.patient_id = p.patient_id
+        left join user u1 on p.user_id = u1.user_id
+        left join doctor d on r.doctor_id = d.doctor_id
+        left join user u2 on d.user_id = u2.user_id
+        <where>
+            <if test="status != null and status != ''">
+                r.status = #{status}
+            </if>
+            <if test="doctorId != null">
+                and r.doctor_id = #{doctorId}
+            </if>
+            <if test="patientId != null">
+                and r.patient_id = #{patientId}
+            </if>
+        </where>
+        order by field(r.status, 'waiting', 'in_progress', 'completed', 'cancelled'), r.queue_number
+    </select>
+
+    <select id="getDoctorQueue" resultType="usc.emrsytem.springboot.entity.Registration">
+        select r.*, u.username as patientName
+        from registration r
+        left join patient p on r.patient_id = p.patient_id
+        left join user u on p.user_id = u.user_id
+        where r.doctor_id = #{doctorId} and r.status = 'waiting'
+        order by r.queue_number
+    </select>
+
+    <select id="getById" resultType="usc.emrsytem.springboot.entity.Registration">
+        select * from registration where registration_id = #{registrationId}
+    </select>
+</mapper>

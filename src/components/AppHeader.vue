@@ -23,7 +23,7 @@ export default {
     <div style="height: 80px; line-height: 80px; background-color: #53a8ff; width: 100%; display: flex">
       <div style="width: 400px">
         <img src="@/assets/logo.png" alt="logo" style="width: 40px; position: relative; top: 10px; left: 20px">
-        <span style="margin-left: 25px; font-size: 24px;">医院电子病历管理系统</span>
+        <span style="margin-left: 25px; font-size: 24px;">医生工作站系统</span>
       </div>
       <div style="flex: 1; text-align: right; padding-right: 20px">
         <el-dropdown placement="bottom">

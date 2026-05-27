@@ -1,6 +1,7 @@
 package usc.emrsytem.springboot.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import usc.emrsytem.springboot.controller.request.RecordRequest;
 import usc.emrsytem.springboot.entity.MedicalRecord;
 
@@ -16,4 +17,14 @@ public interface MedicalRecordMapper {
     int updateMedicalRecord(MedicalRecord medicalRecord);
 
     int deleteMedicalRecord(Integer recordId);
+
+    int archiveMedicalRecord(Integer recordId);
+
+    int restoreMedicalRecord(Integer recordId);
+
+    MedicalRecord getById(Integer recordId);
+
+    int confirmMedicalRecord(Integer recordId);
+
+    int voidMedicalRecord(@Param("recordId") Integer recordId, @Param("voidReason") String voidReason);
 }

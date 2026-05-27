@@ -16,4 +16,4 @@ mybatis:
     map-underscore-to-camel-case: true
 
 upload:
-  path: C:/Users/GodsCat/Pictures/temp/
+  path: E:/temp/uploads/

@@ -78,6 +78,26 @@ const routes = [
         component: () => import('@/views/MedicalRecord/ViewMedicalRecord.vue')
       },
       {
+        path: 'MyMedicalRecord',
+        name: 'MyMedicalRecord',
+        component: () => import('@/views/MedicalRecord/MyMedicalRecord.vue')
+      },
+      {
+        path: 'DoctorQueue',
+        name: 'DoctorQueue',
+        component: () => import('@/views/Registration/DoctorQueue.vue')
+      },
+      {
+        path: 'RegistrationManage',
+        name: 'RegistrationManage',
+        component: () => import('@/views/Registration/RegistrationManage.vue')
+      },
+      {
+        path: 'CompareMedicalRecord',
+        name: 'CompareMedicalRecord',
+        component: () => import('@/views/MedicalRecord/CompareMedicalRecord.vue')
+      },
+      {
         path: 'ChangePassword',
         name: 'ChangePassword',
         component: () => import('@/views/person/ChangePassword.vue')

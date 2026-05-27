@@ -105,14 +105,6 @@ export default {
     this.loadDoctors();
     this.loadAdmins();
   },
-  updated() {
-    this.loadPatients();
-    this.loadDoctors();
-    this.loadAdmins();
-    this.handleDisplayTable()
-    this.handleDisplaySelectedUser()
-    // console.log(JSON.stringify(this.tableData))
-  },
   methods: {
     load() {
       request.get('/user/page', {params: this.params}).then(res => {
@@ -120,6 +112,7 @@ export default {
         if (res.code === '200') {
           this.tableData = res.data.list
           this.total = res.data.total
+          this.handleDisplayTable()
           // console.log(JSON.stringify(this.tableData))
         }
       })
@@ -195,7 +188,7 @@ export default {
       }
       if (this.selectedUser.user.role === 'patient') {
         this.selectedUser.user.role = '患者';
-        this.selectedUser.gender = this.selectedUser.user.gender === 'male' ? '男' : '女'
+        this.selectedUser.gender = this.selectedUser.gender === 'male' ? '男' : '女'
         let dateOfBirth = new Date(this.selectedUser.dateOfBirth)
         this.selectedUser.dateOfBirth = dayjs(dateOfBirth).format('YYYY-MM-DD')
 
@@ -204,7 +197,7 @@ export default {
         this.adminDetailBool = false
       } else if (this.selectedUser.user.role === 'doctor') {
         this.selectedUser.user.role = '医生'
-        this.selectedUser.gender = this.selectedUser.user.gender === 'male' ? '男' : '女'
+        this.selectedUser.gender = this.selectedUser.gender === 'male' ? '男' : '女'
 
         this.patientDetailBool = false
         this.doctorDetailBool = true
@@ -285,6 +278,7 @@ export default {
         this.dialogTableVisible = true;
       }
       console.log(this.selectedUser)
+      this.handleDisplaySelectedUser()
     },
     // 查看修改表单
     viewUpdateForm(rowUser) {
@@ -294,61 +288,52 @@ export default {
         this.patientDetailForm = true
         this.doctorDetailForm = false
         this.adminDetailForm = false
-        this.updateDialogFormVisible = true;
         try {
           for (let i = 0; i < this.patientData.length; i++) {
-            // console.log(this.patientData[i])
             if (this.patientData[i].userId === rowUser.userId) {
-              // 将this.patientData[i]拷贝到this.tempData
-              // console.log(this.patientData[i])
               this.tempData = {...this.patientData[i]};
               this.selectedUser = {...this.patientData[i]};
-              // console.log(this.selectedUser)
-              // console.log(this.tempData)
               break
             }
           }
         } catch (e) {
           console.error(e)
         }
+        this.updateDialogFormVisible = true;
       }
       if (rowUser.role === '医生') {
         this.patientDetailForm = false
         this.doctorDetailForm = true
         this.adminDetailForm = false
-        this.updateDialogFormVisible = true;
         try {
           for (let i = 0; i < this.doctorData.length; i++) {
-            // console.log(JSON.stringify(this.adminData[i].userId))
             if (this.doctorData[i].userId === rowUser.userId) {
               this.tempData = {...this.doctorData[i]};
               this.selectedUser = {...this.doctorData[i]};
-              // console.log(JSON.stringify(this.tempData))
               break
             }
           }
         } catch (e) {
           console.error(e)
         }
+        this.updateDialogFormVisible = true;
       }
       if (rowUser.role === '管理员') {
         this.patientDetailForm = false
         this.doctorDetailForm = false
         this.adminDetailForm = true
-        this.updateDialogFormVisible = true;
         try {
           for (let i = 0; i < this.adminData.length; i++) {
-            // console.log(JSON.stringify(this.adminData[i].userId))
             if (this.adminData[i].userId === rowUser.userId) {
               this.tempData = {...this.adminData[i]};
               this.selectedUser = {...this.adminData[i]};
-              // console.log(JSON.stringify(this.tempData))
               break
             }
           }
         } catch (e) {
           console.error(e)
         }
+        this.updateDialogFormVisible = true;
       }
     },
     // 删除角色请求
@@ -404,11 +389,11 @@ export default {
         this.$refs['updateForm'].validate((valid) => {
           if (valid) {
             let requestUrl
-            if(this.selectedUser.user.role === '患者') {
+            if(this.selectedUser.user.role === 'patient') {
               requestUrl= '/user/updatePatient';
-            } else if(this.selectedUser.user.role === '医生') {
+            } else if(this.selectedUser.user.role === 'doctor') {
               requestUrl= '/user/updateDoctor';
-            } else if(this.selectedUser.user.role === '管理员') {
+            } else if(this.selectedUser.user.role === 'admin') {
               requestUrl= '/user/updateAdmin';
             }
             this.selectedUser.user.createdAt = null
@@ -570,12 +555,27 @@ export default {
         <el-table-column prop="phoneNumber" label="电话" />
         <el-table-column prop="createdAt" label="创建时间" />
         <el-table-column prop="lastLoginAt" label="最后登录时间" />
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="280">
           <template #default="scoped">
-            <el-link type="primary" @click="viewDetails(scoped.row)">详细</el-link>
-            <el-link type="warning" @click="viewUpdateForm(scoped.row)">修改</el-link>
-            <el-link type="danger" @click="deleteUserRequest(scoped.row)">删除</el-link>
-            <el-link type="info" @click="viewChangePasswordForm(scoped.row)" disabled>修改密码</el-link>
+            <div class="action-btns">
+              <el-button type="text" size="small" @click="viewDetails(scoped.row)">详细</el-button>
+              <el-button
+                type="text"
+                size="small"
+                @click="viewUpdateForm(scoped.row)"
+                v-if="user.role === 'admin'">修改</el-button>
+              <el-button
+                type="text"
+                size="small"
+                @click="viewChangePasswordForm(scoped.row)"
+                v-if="scoped.row.userId === user.userId || user.role === 'admin'">修改密码</el-button>
+              <el-button
+                type="text"
+                size="small"
+                style="color: #F56C6C"
+                @click="deleteUserRequest(scoped.row)"
+                v-if="scoped.row.role !== '管理员' && user.role === 'admin'">删除</el-button>
+            </div>
           </template>
         </el-table-column>
 <!--        <el-table-column label="状态" width="100">-->
@@ -894,6 +894,22 @@ export default {
         </el-form-item>
       </el-form>
     </el-dialog>
+
+    <!--修改密码对话框-->
+    <el-dialog
+      :visible.sync="changePassDialogFormVisible"
+      width="30%"
+      title="修改密码">
+      <el-form ref="changePassForm" :model="changePassForm" label-width="100px" :rules="{ newPassword: updateRules.newPassword }">
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="changePassForm.newPassword" show-password placeholder="请输入新密码"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="changePassRequest">确认修改</el-button>
+          <el-button @click="changePassDialogFormVisible = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -932,8 +948,9 @@ export default {
   text-align: center;
 }
 
-.action-link {
-  margin-right: 10px;
-  cursor: pointer;
+.action-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 </style>

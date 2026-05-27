@@ -13,6 +13,7 @@ public class Doctor {
     private String specialty;
     private Integer experienceYears;
     private String qualification;
+    private String title;
     private Timestamp updatedAt;
     private User user;
 }

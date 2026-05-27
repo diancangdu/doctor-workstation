@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="usc.emrsytem.springboot.mapper.DiagnosisTemplateMapper">
+    <select id="listAll" resultType="usc.emrsytem.springboot.entity.DiagnosisTemplate">
+        select * from diagnosis_template order by usage_count desc
+    </select>
+    <select id="listByDepartment" resultType="usc.emrsytem.springboot.entity.DiagnosisTemplate">
+        select * from diagnosis_template where department = #{department} order by usage_count desc
+    </select>
+</mapper>

@@ -7,5 +7,7 @@ public class RecordRequest extends BaseRequest{
     private String diagnosis;
     private String symptoms;
     private Integer patientId;
+    private Integer userId;
+    private String status;
 }
 

@@ -5,285 +5,147 @@ export default {
   name: "BindPatientAndDoctor",
   data() {
     return {
-      confirmDoctor: false,// 确认选中医生
-      patientData: [],
-      doctorData: [],
-      patientTableData: [],
-      doctorTableData: [],
-      userData: [],
-      selectedDoctor: [],
-      selectedPatients: [],
-      total: 0,
-      params: {
-        username: '',
-        phoneNumber: '',
-        email: '',
-        pageSize: 13,
-        pageNum: 1
-      },
-      doctorOptions: [{
-        value: '医生 Id: xx',
-        label: 'Id'
-      }],
-      doctorValue: '',
-      patientOptions: [{
-        value: '病人 Id: xx',
-        label: 'Id'
-      }],
-      patientValue: '',
+      doctorOptions: [],
+      patientOptions: [],
+      doctorValue: null,
+      patientValues: [],
+      relations: [],
+      loading: false,
     }
   },
   created() {
-    this.load();
-    this.loadPatientsTable();
-    this.loadDoctorsTable();
+    this.loadOptions();
+    this.loadRelations();
   },
   methods: {
-    // 读取患者信息
-    loadPatients() {
-      this.patientData = this.userData.filter(user => user.role === 'patient');
-    },
-    // 读取医生信息
-    loadDoctors() {
-      this.doctorData = this.userData.filter(user => user.role === 'doctor');
-    },
-    load() {
-      request.get('/user/page', {params: this.params}).then(res => {
-        // console.log("res:" + JSON.stringify(res, null, 2))
+    loadOptions() {
+      request.get('/user/doctor').then(res => {
         if (res.code === '200') {
-          this.userData = res.data.list
-          this.total = res.data.total
-          // console.log(JSON.stringify(this.userData))
-          this.loadPatients()
-          this.loadDoctors()
-          this.generateOptions(this.doctorData, 'doctor')
-          this.generateOptions(this.patientData, 'patient')
+          this.doctorOptions = (res.data || []).map(d => ({
+            value: d.userId, label: d.user.username + ' - ' + (d.department || '')
+          }));
         }
-      })
-    },
-    // 获取患者信息
-    loadPatientsTable() {
-      request.get('/user/patient', {params: this.params}).then(res => {
-        // console.log("res:" + JSON.stringify(res, null, 2))
+      });
+      request.get('/user/patient').then(res => {
         if (res.code === '200') {
-          this.patientTableData = res.data.list
-          // console.log(JSON.stringify(this.patientTableData))
-        } else {
-          this.$message.error(res.msg)
+          this.patientOptions = (res.data.list || []).map(p => ({
+            value: p.userId, label: p.user.username
+          }));
         }
-      })
+      });
     },
-    // 获取医生信息
-    loadDoctorsTable() {
-      request.get('/user/doctor', {params: this.params}).then(res => {
-        // console.log("res:" + JSON.stringify(res, null, 2))
-        if (res.code === '200') {
-          this.doctorTableData = res.data
-          // console.log(JSON.stringify(this.doctorTableData))
-        }
-      })
+    loadRelations() {
+      this.loading = true;
+      let doctorList = [], patientList = [];
+      Promise.all([
+        request.get('/user/doctor'),
+        request.get('/user/patient', { params: { pageSize: 999 } })
+      ]).then(([dRes, pRes]) => {
+        doctorList = dRes.code === '200' ? (dRes.data || []) : [];
+        patientList = pRes.code === '200' ? (pRes.data.list || []) : [];
+        const promises = doctorList.map(d =>
+          request.get('/DoctorPatient/getByUserId', { params: { userId: d.userId } })
+        );
+        return Promise.all(promises).then(results => {
+          this.relations = [];
+          results.forEach((r, i) => {
+            if (r.code === '200' && r.data) {
+              (r.data || []).forEach(dp => {
+                const patient = patientList.find(p => p.patientId === dp.patientId);
+                this.relations.push({
+                  ...dp,
+                  doctorUserId: doctorList[i].userId,
+                  patientUserId: patient ? patient.userId : null,
+                  doctorName: doctorList[i].user ? doctorList[i].user.username : '',
+                  patientName: patient ? patient.user.username : '',
+                  doctorDepartment: doctorList[i].department || '',
+                });
+              });
+            }
+          });
+        });
+      }).finally(() => this.loading = false);
     },
-
-    // 处理选项
-    generateOptions(data, type) {
-      const options = data.map( item => {
-        return {
-          value: item.userId.toString(),
-          label: `${item.username} Id: ${item.userId}` // 拼接username和userId
-        }
-      })
-
-      if (type === 'doctor') {
-        this.doctorOptions = options
-      } else if (type === 'patient') {
-        this.patientOptions = options
-      }
-    },
-    confirmDoc() {
-      if (this.doctorValue === null || this.doctorValue === '') {
-        this.$message.error('请选择医生')
-        return
-      }
-      // console.log(this.doctorValue)
-      // console.log(JSON.stringify(this.doctorTableData))
-      try {
-        let num = Number(this.doctorValue)
-        for (let i = 0; i < this.doctorTableData.length; i++) {
-          if (this.doctorTableData[i].userId === num) {
-            this.selectedDoctor.push(this.doctorTableData[i])
-            // console.log(JSON.stringify(this.selectedDoctor))
-          }
-        }
-      } catch (e) {
-        console.log(e)
-      }
-      this.confirmDoctor = true;
-      this.patientValue = '';
-    },
-    confirmAdd() {
-      // 将 patientOptions 的 value 转换成数字型数组
-      console.log(this.patientValue)
-      const patientValues = this.patientValue.map(item => parseInt(item, 10));
-      console.log(patientValues)
-      // 发送医生的userId和病人的id数组给后端
+    bindRelation() {
+      if (!this.doctorValue) { this.$message.warning('请选择医生'); return; }
+      if (!this.patientValues || this.patientValues.length === 0) { this.$message.warning('请选择至少一位患者'); return; }
       request({
         url: '/DoctorPatient/add',
         method: 'put',
         data: {
           doctorValue: this.doctorValue,
-          patientValues: patientValues
+          patientValues: this.patientValues
         }
       }).then(res => {
-
         if (res.code === '200') {
-          this.$message.success('绑定成功')
+          this.$message.success('绑定成功');
+          this.patientValues = [];
+          this.loadRelations();
         } else {
-          this.$message.error(res.msg)
+          this.$message.error(res.msg);
         }
-        this.load()
-      })
-    },
-    selectPatient() {
-      const numericArray = this.patientValue.map(item => parseInt(item, 10));
-      // console.log(numericArray)
-      this.selectedPatients = this.patientTableData.filter(item =>
-          numericArray.includes(item.userId)
-      );
-      const currentDate = new Date(); // 当前日期
-      this.selectedPatients = this.selectedPatients.map(patient => {
-        if (patient.dateOfBirth) {
-          const birthDate = new Date(patient.dateOfBirth); // 解析出生日期
-          const age = currentDate.getFullYear() - birthDate.getFullYear();
-          const isBirthdayPassed =
-              currentDate.getMonth() > birthDate.getMonth() ||
-              (currentDate.getMonth() === birthDate.getMonth() &&
-                  currentDate.getDate() >= birthDate.getDate());
-          // 如果生日还没过，则年龄减一
-          patient.age = isBirthdayPassed ? age : age - 1;
-        } else {
-          patient.age = null; // 如果没有 dateOfBirth，则设置为 null 或其他默认值
-        }
-        return patient;
       });
-    }
+    },
+    unbind(row) {
+      this.$confirm('确定解除该医患关系?', '提示', {
+        confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+      }).then(() => {
+        request.delete('/DoctorPatient/delete/' + row.doctorUserId + '/' + row.patientUserId).then(res => {
+          if (res.code === '200') {
+            this.$message.success('已解除');
+            this.loadRelations();
+          } else {
+            this.$message.error(res.msg);
+          }
+        })
+      }).catch(() => {});
+    },
   }
-
 }
 </script>
 
 <template>
-  <div class="page-container">
-    <!-- 医生选择 -->
-    <div class="section">
-      <el-form>
-        <el-form-item label="选择医生：">
-          <el-select
-              @change="confirmDoctor = false"
-              v-model="doctorValue"
-              filterable
-              placeholder="请选择医生"
-              class="select-box"
-          >
-            <el-option
-                v-for="item in doctorOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            ></el-option>
+  <div class="bind-page">
+    <h2 class="page-title">医患关系管理</h2>
+
+    <!-- 绑定表单 -->
+    <el-card shadow="hover" style="margin-bottom:20px">
+      <div slot="header"><i class="el-icon-link"></i> 新建绑定</div>
+      <el-row :gutter="20" align="middle">
+        <el-col :span="6">
+          <el-select v-model="doctorValue" filterable placeholder="选择医生" style="width:100%">
+            <el-option v-for="d in doctorOptions" :key="d.value" :label="d.label" :value="d.value" />
           </el-select>
-          <el-button type="primary" @click="confirmDoc">确定医生</el-button>
-        </el-form-item>
-      </el-form>
-
-    </div>
-
-    <!-- 医生表格 -->
-    <div class="section">
-      <el-table
-          v-if="confirmDoctor"
-          :data="selectedDoctor"
-          class="table"
-      >
-        <el-table-column prop="userId" label="用户ID"></el-table-column>
-        <el-table-column prop="user.username" label="医生姓名"></el-table-column>
-        <el-table-column prop="department" label="部门"></el-table-column>
-        <el-table-column prop="specialty" label="专业领域"></el-table-column>
-        <el-table-column prop="experienceYears" label="从业年限（年）"></el-table-column>
-      </el-table>
-    </div>
-
-    <!-- 患者选择 -->
-    <div v-if="confirmDoctor" class="section">
-      <el-form>
-        <el-form-item label="选择患者：">
-          <el-select
-              v-model="patientValue"
-              multiple
-              filterable
-              @change="selectPatient"
-              placeholder="请选择患者"
-              class="select-box"
-          >
-            <el-option
-                v-for="item in patientOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            ></el-option>
+        </el-col>
+        <el-col :span="12">
+          <el-select v-model="patientValues" multiple filterable placeholder="选择患者（可多选）" style="width:100%">
+            <el-option v-for="p in patientOptions" :key="p.value" :label="p.label" :value="p.value" />
           </el-select>
-          <el-button type="primary" @click="confirmAdd">添加患者</el-button>
-        </el-form-item>
-      </el-form>
+        </el-col>
+        <el-col :span="6">
+          <el-button type="primary" icon="el-icon-link" @click="bindRelation">绑定</el-button>
+        </el-col>
+      </el-row>
+    </el-card>
 
-    </div>
-
-    <!-- 患者表格 -->
-    <div v-if="confirmDoctor" class="section">
-      <el-table
-          :data="selectedPatients"
-          class="table"
-      >
-        <el-table-column prop="userId" label="用户ID"></el-table-column>
-        <el-table-column prop="user.username" label="患者姓名"></el-table-column>
-        <el-table-column prop="gender" label="性别"></el-table-column>
-        <el-table-column prop="age" label="患者年龄（岁）"></el-table-column>
-        <el-table-column prop="medicalHistory" label="患者用药历史"></el-table-column>
+    <!-- 已有关系 -->
+    <el-card shadow="hover" v-loading="loading">
+      <div slot="header"><i class="el-icon-connection"></i> 已有关系 ({{ relations.length }})</div>
+      <el-table :data="relations" stripe border empty-text="暂无医患关系">
+        <el-table-column prop="doctorName" label="医生" />
+        <el-table-column prop="doctorDepartment" label="科室" />
+        <el-table-column prop="patientName" label="患者" />
+        <el-table-column label="操作" width="100">
+          <template v-slot="s">
+            <el-button type="danger" size="mini" icon="el-icon-delete" @click="unbind(s.row)">解除</el-button>
+          </template>
+        </el-table-column>
       </el-table>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <style scoped>
-.page-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* 水平居中 */
-  background-color: rgba(255, 255, 255, 0.8); /* 半透明背景 */
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.section {
-  width: 80%;
-  margin-bottom: 20px;
-}
-
-.action-group {
-  display: flex;
-  justify-content: center; /* 水平居中 */
-  align-items: center;
-  gap: 10px; /* 控件之间的间距 */
-}
-
-.select-box {
-  width: 300px;
-}
-
-.table {
-  width: 100%;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.9); /* 表格背景更浅 */
-  overflow: hidden;
-}
+.bind-page { padding: 20px; }
+.page-title { font-size: 24px; color: #333; margin-bottom: 20px; }
 </style>

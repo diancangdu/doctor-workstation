@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import usc.emrsytem.springboot.controller.request.AddMedicalRecordRequest;
 import usc.emrsytem.springboot.controller.request.RecordRequest;
+import usc.emrsytem.springboot.entity.AuditLog;
 import usc.emrsytem.springboot.entity.MedicalRecord;
+import usc.emrsytem.springboot.exception.ServiceException;
+import usc.emrsytem.springboot.mapper.AuditLogMapper;
 import usc.emrsytem.springboot.mapper.MedicalRecordMapper;
 import usc.emrsytem.springboot.service.IMedicalRecordService;
 
@@ -18,13 +21,14 @@ import java.util.List;
 public class MedicalRecordService implements IMedicalRecordService {
     @Autowired
     MedicalRecordMapper medicalRecordMapper;
+    @Autowired
+    AuditLogMapper auditLogMapper;
 
     @Override
     @Transactional
     public int addMedicalRecord(AddMedicalRecordRequest request) {
         MedicalRecord medicalRecord = new MedicalRecord();
         BeanUtils.copyProperties(request, medicalRecord);
-
         return medicalRecordMapper.addMedicalRecord(medicalRecord);
     }
 
@@ -40,6 +44,11 @@ public class MedicalRecordService implements IMedicalRecordService {
     }
 
     @Override
+    public MedicalRecord getById(Integer recordId) {
+        return medicalRecordMapper.getById(recordId);
+    }
+
+    @Override
     public int updateMedicalRecord(MedicalRecord medicalRecord) {
         return medicalRecordMapper.updateMedicalRecord(medicalRecord);
     }
@@ -47,5 +56,61 @@ public class MedicalRecordService implements IMedicalRecordService {
     @Override
     public int deleteMedicalRecord(Integer recordId) {
         return medicalRecordMapper.deleteMedicalRecord(recordId);
+    }
+
+    @Override
+    public int archiveMedicalRecord(Integer recordId) {
+        return medicalRecordMapper.archiveMedicalRecord(recordId);
+    }
+
+    @Override
+    public int restoreMedicalRecord(Integer recordId) {
+        return medicalRecordMapper.restoreMedicalRecord(recordId);
+    }
+
+    @Override
+    public int confirmMedicalRecord(Integer recordId, Integer userId, String username) {
+        MedicalRecord record = medicalRecordMapper.getById(recordId);
+        if (record == null) throw new ServiceException("病历不存在");
+        if (record.getDiagnosis() == null || record.getDiagnosis().trim().isEmpty())
+            throw new ServiceException("请填写诊断后再确认");
+        if (record.getPrescription() == null || record.getPrescription().trim().isEmpty())
+            throw new ServiceException("请填写处方后再确认");
+        int result = medicalRecordMapper.confirmMedicalRecord(recordId);
+        logAudit(recordId, userId, username, "确认病历", null);
+        return result;
+    }
+
+    @Override
+    public int voidMedicalRecord(Integer recordId, String voidReason, Integer userId, String username) {
+        int result = medicalRecordMapper.voidMedicalRecord(recordId, voidReason);
+        logAudit(recordId, userId, username, "作废病历", "原因: " + voidReason);
+        return result;
+    }
+
+    @Override
+    public int supplementMedicalRecord(Integer recordId, String supplement, Integer userId, String username) {
+        MedicalRecord record = medicalRecordMapper.getById(recordId);
+        if (record == null) throw new ServiceException("病历不存在");
+        String newSupplement = (record.getSupplement() != null ? record.getSupplement() + "\n" : "") + supplement;
+        record.setSupplement(newSupplement);
+        int result = medicalRecordMapper.updateMedicalRecord(record);
+        logAudit(recordId, userId, username, "补增医嘱", supplement);
+        return result;
+    }
+
+    @Override
+    public Object getAuditLogs(Integer recordId) {
+        return auditLogMapper.listByRecordId(recordId);
+    }
+
+    private void logAudit(Integer recordId, Integer userId, String username, String action, String detail) {
+        AuditLog log = new AuditLog();
+        log.setRecordId(recordId);
+        log.setUserId(userId);
+        log.setUsername(username);
+        log.setAction(action);
+        log.setDetail(detail);
+        auditLogMapper.insert(log);
     }
 }

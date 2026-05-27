@@ -188,6 +188,10 @@ public class UserService implements IUserService {
             case "管理员" -> user.setRole("admin");
         }
 
+        if(Objects.equals(user.getRole(), "admin")) {
+            throw new ServiceException("管理员账号不可删除");
+        }
+
         if(Objects.equals(user.getRole(), "patient")) {
             doctorPatientMapper.deleteByPatientUserId(user.getUserId());
         }

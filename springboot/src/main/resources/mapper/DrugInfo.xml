@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="usc.emrsytem.springboot.mapper.DrugInfoMapper">
+    <select id="listAll" resultType="usc.emrsytem.springboot.entity.DrugInfo">
+        select * from drug_info order by drug_name
+    </select>
+    <select id="getByName" resultType="usc.emrsytem.springboot.entity.DrugInfo">
+        select * from drug_info where drug_name like concat('%', #{drugName}, '%') limit 1
+    </select>
+</mapper>

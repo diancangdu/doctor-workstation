@@ -26,8 +26,23 @@ export default {
       doctorData: [],
       isDoctor: false,
       form: {
-        chart: null,
+        chart: '',
+        chiefComplaint: '',
+        presentIllness: '',
+        pastHistory: '',
+        physicalExam: '',
+        diagnosis: '',
+        symptoms: '',
+        prescription: '',
+        remarks: '',
       },
+      chartList: [],
+      templates: [],
+      selectedTemplate: null,
+      editMode: false,
+      editRecordId: null,
+      doctorInfo: {},
+      drugAlerts: [],
       isSelectPatient: false,
       prescriptionOptions: [],
       selectFromTable: false, // 是否从表格中选择
@@ -41,9 +56,24 @@ export default {
     if(this.user.role === 'doctor') {
       this.isDoctor = true;
       this.load();
-      this.loadPatientsTable();
       this.loadDoctors();
+      this.loadDoctorInfo();
+      this.loadTemplates();
       this.listPrescription();
+      // 编辑模式
+      const editId = this.$route.query.edit;
+      if (editId) {
+        this.editMode = true;
+        this.editRecordId = Number(editId);
+      }
+      const preSelectId = this.$route.query.patientId;
+      this.loadPatientsTable(() => {
+        if (editId) this.loadExistingRecord();
+        if (preSelectId) {
+          this.patientValue = preSelectId;
+          this.selectPatient();
+        }
+      });
     } else {
       this.$message.error("您非医生，无法添加病历")
     }
@@ -76,12 +106,11 @@ export default {
       })
     },
     // 获取患者信息
-    loadPatientsTable() {
+    loadPatientsTable(callback) {
       request.get('/user/patient', {params: this.params}).then(res => {
-        // console.log("res:" + JSON.stringify(res, null, 2))
         if (res.code === '200') {
           this.patientTableData = res.data.list
-          // console.log(JSON.stringify(this.patientTableData))
+          if (callback) callback();
         } else {
           this.$message.error(res.msg)
         }
@@ -178,14 +207,12 @@ export default {
       return true;
     },
     // 清除上传文件
-    handleFileRemove() {
-      this.form.chart = null;
+    handleFileRemove(file) {
+      this.chartList = this.chartList.filter(item => item.uid !== file.uid);
     },
     // 上传成功
-    handleSuccess(response) {
-      // console.log(response)
-      this.form.chart = response.data.filePath;
-      // console.log(this.form.chart)
+    handleSuccess(response, file) {
+      this.chartList.push({ name: file.name, url: response.data.filePath, uid: file.uid });
       this.$message.success('上传成功');
     },
     // 上传失败
@@ -249,15 +276,19 @@ export default {
         this.$message.error(e)
       }
 
-      request({
-        url: '/medicalRecord/add',
-        method: 'put',
-        data: this.form
-      }).then(res => {
+      // 多图路径拼接为逗号分隔字符串
+      this.form.chart = this.chartList.map(item => item.url).join(',');
+
+      const url = this.editMode ? '/medicalRecord/update' : '/medicalRecord/add';
+      const method = this.editMode ? 'post' : 'put';
+      if (this.editMode) this.form.recordId = this.editRecordId;
+
+      request({ url, method, data: this.form }).then(res => {
         if(res.code === '200') {
-          this.$message.success('添加成功')
+          this.$message.success(this.editMode ? '修改成功' : '添加成功');
+          this.$router.back();
         } else {
-          this.$message.error(res.msg)
+          this.$message.error(res.msg);
         }
       })
       console.log(this.form)
@@ -266,15 +297,80 @@ export default {
       if (this.selectFromTable === false) {
         this.prescriptionId = null;
       }
-    }
-
+    },
+    loadTemplates() {
+      request.get('/common/templates').then(res => {
+        if (res.code === '200') this.templates = res.data;
+      });
+    },
+    loadDoctorInfo() {
+      request.get('/user/doctor').then(res => {
+        if (res.code === '200') {
+          const self = (res.data || []).find(d => d.user && d.user.userId === this.user.userId);
+          if (self) this.doctorInfo = self;
+        }
+      });
+    },
+    applyTemplate(templateId) {
+      const t = this.templates.find(tp => tp.templateId === templateId);
+      if (!t) return;
+      this.form.diagnosis = t.diagnosisName || '';
+      this.form.symptoms = t.symptoms || '';
+      this.form.prescription = t.prescriptionHint || '';
+    },
+    checkDrugInteraction() {
+      this.drugAlerts = [];
+      if (!this.form.prescription) return;
+      const drugs = this.form.prescription.split('\n').filter(Boolean);
+      drugs.forEach(line => {
+        const name = line.split(/[\s\d]/)[0];
+        if (name && name.length > 1) {
+          request.get('/common/drug', { params: { name } }).then(res => {
+            if (res.code === '200' && res.data) {
+              const d = res.data;
+              this.drugAlerts.push(d.drugName + ' | ' + (d.dosageHint || '') + ' | ' + (d.contraindications || ''));
+            }
+          });
+        }
+      });
+    },
+    loadExistingRecord() {
+      request.get('/medicalRecord/getById/' + this.editRecordId).then(res => {
+        if (res.code === '200' && res.data) {
+          const record = res.data;
+          this.form = {
+            diagnosis: record.diagnosis || '',
+            symptoms: record.symptoms || '',
+            prescription: record.prescription || '',
+            remarks: record.remarks || '',
+            chart: record.chart || '',
+            chiefComplaint: record.chiefComplaint || '',
+            presentIllness: record.presentIllness || '',
+            pastHistory: record.pastHistory || '',
+            physicalExam: record.physicalExam || '',
+            patientId: record.patientId,
+            doctorId: record.doctorId,
+          };
+          if (record.chart) {
+            this.chartList = record.chart.split(',').filter(Boolean).map((url, i) => ({
+              name: 'image' + i, url: url, uid: i
+            }));
+          }
+          const pt = this.patientTableData.find(p => p.patientId === record.patientId);
+          if (pt) {
+            this.patientValue = String(pt.userId);
+            this.selectPatient();
+          }
+        }
+      });
+    },
   }
 }
 </script>
 
 <template>
   <div class="container">
-    <h2 class="tittle">新增病历</h2>
+    <h2 class="tittle">{{ editMode ? '编辑病历' : '新增病历' }}</h2>
     <div v-if="isDoctor">
       <!-- 患者选择 -->
       <div class="section">
@@ -308,65 +404,86 @@ export default {
           <el-table-column prop="age" label="患者年龄（岁）"></el-table-column>
         </el-table>
       </div>
-      <!--填写新增病例表单-->
-      <el-form ref="form" v-if="isSelectPatient" :model="form" :rules="rules" label-width="80px" class="form">
-        <el-form-item label="医生姓名:" class="form-item">
-          <el-select v-model="this.user.username" placeholder="请选择医生" disabled class="select-box">
+      <!--填写新增病历表单-->
+      <el-form ref="form" v-if="isSelectPatient" :model="form" :rules="rules" label-width="100px" class="form">
+        <!-- 医生信息 -->
+        <el-divider content-position="left">医生信息</el-divider>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="医生姓名"><el-input :value="user.username" disabled /></el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="科室"><el-input :value="doctorInfo.department || ''" disabled /></el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="职称"><el-input :value="doctorInfo.title || ''" disabled /></el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 病历模板 -->
+        <el-divider content-position="left">病历模板</el-divider>
+        <el-form-item label="选择模板">
+          <el-select v-model="selectedTemplate" placeholder="选择诊断模板快速填充" @change="applyTemplate" clearable style="width: 100%">
+            <el-option label="无（手动填写）" :value="null" />
+            <el-option v-for="t in templates" :key="t.templateId" :label="t.diagnosisName" :value="t.templateId" />
           </el-select>
         </el-form-item>
-        <el-form-item label="UID:" class="form-item">
-          <el-select v-model="this.user.userId" placeholder="user_id" disabled class="select-box">
-          </el-select>
+
+        <!-- 诊疗信息 -->
+        <el-divider content-position="left">诊疗信息</el-divider>
+        <el-form-item label="主诉">
+          <el-input type="textarea" v-model="form.chiefComplaint" placeholder="患者主要不适及持续时间" :rows="2" />
         </el-form-item>
-        <el-form-item label="诊断" class="form-item" prop="diagnosis">
-          <el-input type="textarea" v-model="form.diagnosis"></el-input>
+        <el-form-item label="现病史">
+          <el-input type="textarea" v-model="form.presentIllness" placeholder="发病经过、诊疗经过、一般情况" :rows="3" />
         </el-form-item>
-        <el-form-item label="症状" class="form-item">
-          <el-input type="textarea" v-model="form.symptoms"></el-input>
+        <el-form-item label="既往史">
+          <el-input type="textarea" v-model="form.pastHistory" placeholder="既往疾病史、手术史、过敏史等" :rows="2" />
         </el-form-item>
-        <el-form-item label="处方" class="form-item">
-          <el-input type="textarea" v-model="form.prescription"></el-input>
+        <el-form-item label="体格检查">
+          <el-input type="textarea" v-model="form.physicalExam" placeholder="T/BP/HR/RR，各系统检查所见" :rows="2" />
         </el-form-item>
-        <el-form-item label="从表选择">
-          <el-radio-group v-model="selectFromTable" @change="handleChange">
-            <el-radio :label="false">否</el-radio>
-            <el-radio :label="true">是</el-radio>
-          </el-radio-group>
+        <el-form-item label="西医诊断" prop="diagnosis">
+          <el-input type="textarea" v-model="form.diagnosis" :rows="2" />
         </el-form-item>
-        <el-form-item label="选择处方" v-if="selectFromTable">
-          <el-select v-model="prescriptionId" filterable placeholder="请选择">
-            <el-option
-                v-for="item in prescriptionOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value">
-            </el-option>
-          </el-select>
+        <el-form-item label="症状描述">
+          <el-input type="textarea" v-model="form.symptoms" :rows="2" />
         </el-form-item>
-        <el-form-item label="上传图像" >
+
+        <!-- 处方 -->
+        <el-divider content-position="left">处方与用药</el-divider>
+        <el-form-item label="开具处方">
+          <el-input type="textarea" v-model="form.prescription" :rows="3" placeholder="药品名称 剂量 频次 疗程，每行一个" />
+        </el-form-item>
+        <el-form-item label="用药提醒" v-if="drugAlerts.length > 0">
+          <el-alert v-for="a in drugAlerts" :key="a" :title="a" type="warning" show-icon :closable="false" style="margin-bottom:5px" />
+        </el-form-item>
+
+        <!-- 图像 -->
+        <el-divider content-position="left">附件</el-divider>
+        <el-form-item label="上传图像">
           <el-upload
               action="http://localhost:9090/api/upload"
-              ref="upload"
-              drag
+              ref="upload" drag multiple
+              :file-list="chartList"
               :before-upload="beforeUpload"
               :on-success="handleSuccess"
               :on-error="handleError"
               :on-remove="handleFileRemove"
-              name="file"
-              accept="image/*"
-              :headers="{ token: this.user.token}"
-          >
+              name="file" accept="image/*"
+              :headers="{ token: this.user.token}">
             <i class="el-icon-upload"></i>
             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-            <div class="el-upload__tip" slot="tip">只能上传图像文件，且不超过8mb</div>
+            <div class="el-upload__tip" slot="tip">可上传多张图像，单张不超过8mb</div>
           </el-upload>
         </el-form-item>
-        <el-form-item label="备注" class="form-item">
-          <el-input type="textarea" v-model="form.remarks"></el-input>
+        <el-form-item label="备注">
+          <el-input type="textarea" v-model="form.remarks" :rows="2" />
         </el-form-item>
-        <el-form-item class="form-item">
-          <el-button type="primary" @click="onSubmit">立即创建</el-button>
-          <el-button>取消</el-button>
+
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">{{ editMode ? '保存修改' : '保存病历（草稿）' }}</el-button>
+          <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>
     </div>

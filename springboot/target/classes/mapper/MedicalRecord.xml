@@ -6,30 +6,47 @@
 <mapper namespace="usc.emrsytem.springboot.mapper.MedicalRecordMapper">
 
     <insert id="addMedicalRecord">
-        insert into medical_record (patient_id, doctor_id, prescription_id, diagnosis, symptoms, chart, remarks, prescription)
-        values (#{patientId}, #{doctorId}, #{prescriptionId}, #{diagnosis}, #{symptoms}, #{chart}, #{remarks}, #{prescription})
+        insert into medical_record (patient_id, doctor_id, prescription_id, diagnosis, symptoms, chart, remarks, prescription, chief_complaint, present_illness, past_history, physical_exam)
+        values (#{patientId}, #{doctorId}, #{prescriptionId}, #{diagnosis}, #{symptoms}, #{chart}, #{remarks}, #{prescription}, #{chiefComplaint}, #{presentIllness}, #{pastHistory}, #{physicalExam})
     </insert>
 
     <update id="updateMedicalRecord">
         UPDATE medical_record
         <set>
-            <if test="diagnosis != null">
-                diagnosis = #{diagnosis},
-            </if>
-            <if test="prescriptionId != null">
-                prescription_id = #{prescriptionId},
-            </if>
-            <if test="remarks != null">
-                remarks = #{remarks},
-            </if>
-            <if test="symptoms != null">
-                symptoms = #{symptoms},
-            </if>
-            <if test="prescription != null">
-                prescription = #{prescription},
-            </if>
+            <if test="diagnosis != null">diagnosis = #{diagnosis},</if>
+            <if test="prescriptionId != null">prescription_id = #{prescriptionId},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+            <if test="symptoms != null">symptoms = #{symptoms},</if>
+            <if test="chart != null">chart = #{chart},</if>
+            <if test="prescription != null">prescription = #{prescription},</if>
+            <if test="chiefComplaint != null">chief_complaint = #{chiefComplaint},</if>
+            <if test="presentIllness != null">present_illness = #{presentIllness},</if>
+            <if test="pastHistory != null">past_history = #{pastHistory},</if>
+            <if test="physicalExam != null">physical_exam = #{physicalExam},</if>
+            <if test="supplement != null">supplement = #{supplement},</if>
+            <if test="totalFee != null">total_fee = #{totalFee},</if>
         </set>
         WHERE record_id = #{recordId}
+    </update>
+
+    <select id="getById" resultType="usc.emrsytem.springboot.entity.MedicalRecord">
+        select * from medical_record where record_id = #{recordId}
+    </select>
+
+    <update id="confirmMedicalRecord">
+        update medical_record set record_status = 'confirmed' where record_id = #{recordId} and record_status = 'draft'
+    </update>
+
+    <update id="voidMedicalRecord">
+        update medical_record set record_status = 'voided', void_reason = #{voidReason} where record_id = #{recordId}
+    </update>
+
+    <update id="archiveMedicalRecord">
+        update medical_record set status = 'archived' where record_id = #{recordId}
+    </update>
+
+    <update id="restoreMedicalRecord">
+        update medical_record set status = 'active' where record_id = #{recordId}
     </update>
 
     <delete id="deleteMedicalRecord">
@@ -37,16 +54,30 @@
     </delete>
 
     <select id="listPrescription" resultType="usc.emrsytem.springboot.entity.MedicalRecord">
-        select * from medical_record
+        select mr.* from medical_record mr
+        <if test="userId != null">
+            inner join patient p on mr.patient_id = p.patient_id
+        </if>
         <where>
+            <choose>
+                <when test="status != null and status != ''">
+                    mr.status = #{status}
+                </when>
+                <otherwise>
+                    mr.status = 'active'
+                </otherwise>
+            </choose>
+            <if test="userId != null">
+                and p.user_id = #{userId}
+            </if>
             <if test="patientId != null and patientId != ''">
-                patient_id like concat('%', #{patientId}, '%')
+                and mr.patient_id like concat('%', #{patientId}, '%')
             </if>
             <if test="diagnosis != null and diagnosis != ''">
-                and diagnosis like concat('%', #{diagnosis}, '%')
+                and mr.diagnosis like concat('%', #{diagnosis}, '%')
             </if>
             <if test="symptoms != null and symptoms != ''">
-                and symptoms like concat('%', #{symptoms}, '%')
+                and mr.symptoms like concat('%', #{symptoms}, '%')
             </if>
         </where>
     </select>

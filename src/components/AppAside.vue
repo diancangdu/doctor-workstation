@@ -73,6 +73,10 @@ export default {
             <i class="el-icon-key"></i>
             <span slot="title">修改密码</span>
           </el-menu-item>
+          <el-menu-item index="2-3" :route="{path:'/MyMedicalRecord'}" v-if="role.patient">
+            <i class="el-icon-notebook-2"></i>
+            <span slot="title">我的病历</span>
+          </el-menu-item>
         </el-menu-item-group>
       </el-submenu>
       <el-submenu index="3" v-if="role.doctorOrAdmin">
@@ -81,19 +85,31 @@ export default {
           <span>门诊病历管理</span>
         </template>
         <el-menu-item-group >
-          <el-menu-item index="3-1" :route="{path:'/AssignedPatients'}" v-if="role.doctor">
-            <i class="el-icon-user"></i>
-            <span slot="title">查看名下患者</span>
+          <el-menu-item index="3-1" :route="{path: '/RegistrationManage'}" v-if="role.doctorOrAdmin">
+            <i class="el-icon-s-order"></i>
+            <span slot="title">挂号管理</span>
           </el-menu-item>
-          <el-menu-item index="3-2" :route="{path:'/ViewMedicalRecord'}" v-if="role.doctorOrAdmin">
-            <i class="el-icon-notebook-2"></i>
-            <span slot="title">查询病历</span>
+          <el-menu-item index="3-2" :route="{path:'/DoctorQueue'}" v-if="role.doctor">
+            <i class="el-icon-s-data"></i>
+            <span slot="title">接诊排队</span>
           </el-menu-item>
           <el-menu-item index="3-3" :route="{path: '/AddMedicalRecord'}" v-if="role.doctor">
             <i class="el-icon-plus"></i>
             <span slot="title">新增病历</span>
           </el-menu-item>
-          <el-menu-item index="3-4" :route="{path: '/BindPatientAndDoctor'}" v-if="role.doctorOrAdmin">
+          <el-menu-item index="3-4" :route="{path:'/ViewMedicalRecord'}" v-if="role.doctorOrAdmin">
+            <i class="el-icon-notebook-2"></i>
+            <span slot="title">查询病历</span>
+          </el-menu-item>
+          <el-menu-item index="3-5" :route="{path:'/CompareMedicalRecord'}" v-if="role.doctorOrAdmin">
+            <i class="el-icon-sort"></i>
+            <span slot="title">病历对比</span>
+          </el-menu-item>
+          <el-menu-item index="3-6" :route="{path:'/AssignedPatients'}" v-if="role.doctor">
+            <i class="el-icon-user"></i>
+            <span slot="title">查看名下患者</span>
+          </el-menu-item>
+          <el-menu-item index="3-7" :route="{path: '/BindPatientAndDoctor'}" v-if="role.doctorOrAdmin">
             <i class="el-icon-edit-outline"></i>
             <span slot="title">注册医生病人关系</span>
           </el-menu-item>

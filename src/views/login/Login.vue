@@ -79,7 +79,7 @@ export default {
 
   <div style="width: 500px; height: 400px; background-color: #ecf5ff; border-radius: 10px;
   margin: 150px auto; padding: 50px;">
-    <h1 style="text-align: center; margin: 30px; font-weight: bold; color: dodgerblue">登录</h1>
+    <h1 style="text-align: center; margin: 30px; font-weight: bold; color: dodgerblue">医生工作站系统</h1>
     <el-form :model="user" ref="loginForm" style="margin: 50px" :rules="loginRules">
       <el-form-item  prop="phoneNumber">
         <el-input v-model="user.phoneNumber" placeholder="请输入手机号" size="medium" prefix-icon="el-icon-user"></el-input>

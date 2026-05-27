@@ -17,4 +17,13 @@ public class MedicalRecord {
     private Timestamp updatedAt;
     private String prescription;
     private String remarks;
+    private String status;
+    private String chiefComplaint;
+    private String presentIllness;
+    private String pastHistory;
+    private String physicalExam;
+    private String recordStatus;
+    private String voidReason;
+    private String supplement;
+    private java.math.BigDecimal totalFee;
 }
