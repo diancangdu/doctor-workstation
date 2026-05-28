@@ -1,4 +1,5 @@
 {
   "backendPort": 9090,
-  "frontendPort": 8080
+  "frontendPort": 8080,
+  "dbPassword": "123456"
 }

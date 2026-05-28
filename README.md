@@ -57,21 +57,7 @@ EMRSystem/
 CREATE DATABASE IF NOT EXISTS emrs DEFAULT CHARSET utf8mb4;
 ```
 
-> **如果 MySQL 密码不是 `123456`，需要修改以下文件：**
-
-| 文件 | 改什么 | 跳转 |
-|------|--------|------|
-| 后端配置 | `spring.datasource.password` | [application.yml](springboot/src/main/resources/application.yml) |
-| 初始化脚本 | `-p123456` 替换为你的密码 | [init.sql](sql/init.sql) |
-| 迁移脚本 | `-p123456` 替换为你的密码 | [migration-archive.sql](sql/migration-archive.sql) · [migration-registration.sql](sql/migration-registration.sql) |
-
-[application.yml](springboot/src/main/resources/application.yml) 中修改：
-```yaml
-spring:
-  datasource:
-    username: root
-    password: 你的密码   # ← 改这里
-```
+> **如果 MySQL 密码不是 `123456`：** 修改 [project-config.json](project-config.json) 中的 `dbPassword`，后端自动读取。SQL 脚本命令中的 `-p123456` 需手动替换。
 
 ### 2. 安装 Node.js 并安装前端依赖
 
@@ -103,7 +89,7 @@ npm install
 .\stop.bat         # 关闭
 ```
 
-> 端口统一在 [project-config.json](project-config.json) 中修改。
+> 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改。后端自动读取，仅 [vue.config.js](vue.config.js) 的 `devServer.port` 需手动同步。
 >
 > 端口统一在 [project-config.json](project-config.json) 中修改，改完后所有文件自动生效：
 
