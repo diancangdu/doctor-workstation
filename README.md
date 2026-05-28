@@ -123,7 +123,9 @@ npm run serve
 
 > **如果需要修改端口：** 修改 [project-config.json](project-config.json) 中的 backendPort 和 frontendPort，再同步 [application.yml](springboot/src/main/resources/application.yml) 的 server.port 和 [vue.config.js](vue.config.js) 的 devServer.port。[request.js](src/utils/request.js) 和 [AddMedicalRecord.vue](src/views/MedicalRecord/AddMedicalRecord.vue) 自动跟随，无需手动修改。
 
-```
+
+
+
 
 ### 停止项目
 
