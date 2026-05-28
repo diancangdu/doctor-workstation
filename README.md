@@ -89,7 +89,7 @@ npm install
 .\stop.bat         # 关闭
 ```
 
-> 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改。后端自动读取，仅 [vue.config.js](vue.config.js) 的 `devServer.port` 需手动同步。
+> 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改，所有文件自动读取，无需手动同步。
 >
 > 端口统一在 [project-config.json](project-config.json) 中修改，改完后所有文件自动生效：
 
