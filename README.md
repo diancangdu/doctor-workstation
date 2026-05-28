@@ -131,7 +131,6 @@ module.exports = defineConfig({
   }
 })
 ```
-| 8080 | 前端开发服务器 | Vue CLI 自动分配，或 `vue.config.js` 中配置 `devServer.port` | |
 
 ### 停止项目
 
