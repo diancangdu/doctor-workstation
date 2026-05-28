@@ -91,7 +91,7 @@ npm install
 
 > 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改，所有文件自动读取，无需手动同步。
 >
-> 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改，所有文件自动读取，无需手动同步。
+
 
 ### 手动启动
 
