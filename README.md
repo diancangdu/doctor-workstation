@@ -86,7 +86,22 @@ npm install
 
 ## 启动步骤
 
-### 第一步：启动后端
+### 快捷方式（推荐）
+
+项目根目录提供了一键启停脚本：
+
+| 脚本 | 说明 |
+|------|------|
+| [start-all.bat](start-all.bat) | 一键启动后端 + 前端 |
+| [start-backend.bat](start-backend.bat) | 仅启动后端 |
+| [start-frontend.bat](start-frontend.bat) | 仅启动前端 |
+| [stop.bat](stop.bat) | 关闭所有项目进程 |
+
+> 双击 `start-all.bat` 即可启动全部服务，双击 `stop.bat` 关闭。
+
+### 手动启动
+
+#### 第一步：启动后端
 
 ```bash
 # 进入后端目录
