@@ -91,14 +91,7 @@ npm install
 
 > 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改，所有文件自动读取，无需手动同步。
 >
-> 端口统一在 [project-config.json](project-config.json) 中修改，改完后所有文件自动生效：
-
-| 端口 | 用途 | 还需改的文件（非端口，仅此一处额外配置） | 跳转 |
-|------|------|------|------|
-| 9090 | 后端 API | `server.port` | [application.yml](springboot/src/main/resources/application.yml) |
-| 8080 | 前端开发服务器 | `devServer.port` | [vue.config.js](vue.config.js) |
-
-> 前端请求地址和上传地址已自动读取 `project-config.json` 中的 `backendPort`，无需额外修改。
+> 端口和数据库密码统一在 [project-config.json](project-config.json) 中修改，所有文件自动读取，无需手动同步。
 
 ### 手动启动
 
