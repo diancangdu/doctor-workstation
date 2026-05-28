@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS medical_record (
     physical_exam TEXT,
     record_status VARCHAR(20) DEFAULT 'draft',
     void_reason VARCHAR(500),
+    supplement TEXT,
     total_fee DECIMAL(10,2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -125,6 +126,17 @@ CREATE TABLE IF NOT EXISTS drug_info (
     contraindications TEXT,
     adverse_reactions TEXT,
     interactions TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 操作日志表
+CREATE TABLE IF NOT EXISTS audit_log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    record_id INT NOT NULL,
+    user_id INT NOT NULL,
+    username VARCHAR(50),
+    action VARCHAR(30),
+    detail TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 挂号表

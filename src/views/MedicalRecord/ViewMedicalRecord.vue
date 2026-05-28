@@ -116,7 +116,7 @@ export default {
       this.$router.push({ path: '/AddMedicalRecord', query: { edit: row.recordId } });
     },
     archiveRecord(row) {
-      this.$confirm('归档后病历将不在常规列表中显示，可在"查看已归档"中找回。是否继续?', '提示', {
+      this.$confirm('归档后病历将追加到 docs/archives/archives.csv，并在常规列表中隐藏。是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

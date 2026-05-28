@@ -13,6 +13,12 @@
 | 7 | 标准7补全：审核/补增/痕迹 | MedicalRecordService.java · AuditLog · ViewMedicalRecord.vue | [→](#7-标准7补全审核补增痕迹) |
 | 8 | 编辑病历（草稿） | AddMedicalRecord.vue · MedicalRecordController · MedicalRecord.xml | [→](#8-编辑病历草稿) |
 | 9 | 医患关系页面重写 | BindPatientAndDoctor.vue | [→](#9-医患关系页面重写) |
+| 10 | 处方多选 + 详情展示 | AddMedicalRecord.vue | [→](#10-处方多选--详情展示) |
+| 11 | 既往史自动填入 | AddMedicalRecord.vue | [→](#11-既往史自动填入) |
+| 12 | 图片缩略预览 + 放大 | AddMedicalRecord.vue | [→](#12-图片缩略预览--放大) |
+| 13 | 归档导出统一 CSV | ExcelUtil.java · MedicalRecordService.java | [→](#13-归档导出统一-csv) |
+| 14 | 实时时钟显示 | AppAside.vue | [→](#14-实时时钟显示) |
+| 15 | 挂号实时录入按钮 | RegistrationManage.vue | [→](#15-挂号实时录入按钮) |
 
 ---
 
@@ -325,3 +331,129 @@
 - 上部：选医生 + 选患者（可多选） + 一键"绑定"
 - 下部：表格展示所有已有关系（医生/科室/患者），每行有"解除"按钮
 - 加载全量患者数据（pageSize:999），避免显示空白
+
+---
+
+## 10. 处方多选 + 详情展示
+
+### 需求背景
+
+新增病历时开具处方需要支持从已有处方库中选择，可多选，选中后显示完整信息。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | 修改 |
+
+### 功能要点
+
+- 多选处方下拉框，默认无
+- 悬停 0.3 秒后右侧弹出 tooltip 显示完整信息（药品/剂量/频次/疗程/用法/备注）
+- 提交时自动拼接选中处方的文本到开具处方文本框
+
+---
+
+## 11. 既往史自动填入
+
+### 需求背景
+
+选择患者后，既往史字段应自动填入该患者的病史和过敏史，减少医生重复录入。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | 修改 |
+
+### 功能要点
+
+- `selectPatient` 中读取患者 `medicalHistory` 和 `allergies`
+- 自动填入格式："既往病史：xxx；过敏史：xxx"
+- 仅新增模式自动填入，编辑模式保留已有内容
+- 医生可手动修改
+
+---
+
+## 12. 图片缩略预览 + 放大
+
+### 需求背景
+
+上传图片后需能直观看到缩略预览，点击可放大查看。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | 修改 |
+
+### 功能要点
+
+- 上传完成后下方显示 100x100 缩略图
+- 仅显示已完成上传的图片（`v-if="img.url"`）
+- 点击缩略图弹出 60% 宽度大图弹窗
+
+---
+
+## 13. 归档导出统一 CSV
+
+### 需求背景
+
+病历归档操作改为导出到本地 Excel（CSV），统一归档文件便于管理。
+
+### 改动文件
+
+| 层级 | 文件 | 操作 |
+|------|------|------|
+| 后端 | [ExcelUtil.java](../springboot/src/main/java/usc/emrsytem/springboot/utils/ExcelUtil.java) | 新建：CSV 导出工具 |
+| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/MedicalRecordService.java) | 修改：归档时导出 CSV，恢复时追加记录 |
+| 前端 | [ViewMedicalRecord.vue](../src/views/MedicalRecord/ViewMedicalRecord.vue) | 修改：归档确认提示文字 |
+
+### 功能要点
+
+- 归档和恢复操作统一写入 `docs/archives/archives.csv`
+- 首次操作自动创建文件并写表头
+- 每次操作追加一行（操作列标"归档"或"恢复"）
+- 含 BOM 头兼容 Excel 中文打开
+- 文件路径写入病历备注
+
+---
+
+## 14. 实时时钟显示
+
+### 需求背景
+
+全局显示当前时间，便于医生随时掌握时间。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [AppAside.vue](../src/components/AppAside.vue) | 修改 |
+
+### 功能要点
+
+- 侧边栏顶部显示实时时钟（HH:MM:SS + 日期）
+- 每秒更新，80px 高度与顶部 header 对齐
+- 背景色与系统 header 一致（`#53a8ff`）
+- 侧边栏收起时只显示 HH:MM
+- 菜单滚动条隐藏
+
+---
+
+## 15. 挂号实时录入按钮
+
+### 需求背景
+
+挂号管理页面预留实时录入入口。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [RegistrationManage.vue](../src/views/Registration/RegistrationManage.vue) | 修改 |
+
+### 功能要点
+
+- 挂号管理页新增"挂号实时录入"按钮
+- 位于"新建挂号"旁边，暂未绑定事件

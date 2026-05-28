@@ -6,6 +6,7 @@ export default {
   data() {
     return {
       user: Cookies.get('user') ? JSON.parse(Cookies.get('user')) : {},
+      now: new Date(),
       isCollapse: false,
       showLeftButton: true, // 默认显示左侧按钮
       thisWidth: 0,
@@ -19,6 +20,7 @@ export default {
     };
   },
   created() {
+    this.timer = setInterval(() => { this.now = new Date(); }, 1000);
     if (this.user.role === 'doctor') {
       this.role.doctor = true
       this.role.doctorOrAdmin = true
@@ -28,6 +30,9 @@ export default {
       this.role.doctorOrAdmin = true
       this.role.admin = true
     }
+  },
+  beforeDestroy() {
+    clearInterval(this.timer);
   },
   methods: {
 
@@ -46,7 +51,20 @@ export default {
 </script>
 
 <template>
-  <div :style="{ width: width + 'px' }" ref="asideContainer">
+  <div :style="{ width: width + 'px' }" ref="asideContainer" class="aside-wrapper">
+
+    <div class="sidebar-clock" :class="{ collapsed: isCollapse }">
+      <template v-if="!isCollapse">
+        {{ String(now.getHours()).padStart(2,'0') }}:{{ String(now.getMinutes()).padStart(2,'0') }}:{{ String(now.getSeconds()).padStart(2,'0') }}
+        <br/>
+        <span class="clock-date">{{ now.getFullYear() }}-{{ String(now.getMonth()+1).padStart(2,'0') }}-{{ String(now.getDate()).padStart(2,'0') }}</span>
+      </template>
+      <template v-else>
+        {{ String(now.getHours()).padStart(2,'0') }}:{{ String(now.getMinutes()).padStart(2,'0') }}
+      </template>
+    </div>
+
+    <div class="aside-menu-wrapper">
     <el-menu
         default-active="1"
         class="el-menu-vertical-demo"
@@ -164,18 +182,56 @@ export default {
         </el-menu-item-group>
       </el-submenu>
     </el-menu>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* 设置侧边栏容器样式 */
-div {
+.aside-wrapper {
   display: flex;
-  flex-direction: column; /* 纵向布局 */
-  height: 100%; /* 高度填充父容器 */
-  background-color: #a0cfff; /* 侧边栏背景色 */
-  border-right: 1px solid #e0e0e0; /* 右侧边框 */
-
+  flex-direction: column;
+  height: 100%;
+  background-color: #a0cfff;
+  border-right: 1px solid #e0e0e0;
+}
+.sidebar-clock {
+  text-align: center;
+  height: 80px;
+  background: #53a8ff;
+  color: #fff;
+  font-size: 22px;
+  font-weight: bold;
+  font-family: monospace;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.clock-date {
+  font-size: 12px;
+  font-weight: normal;
+  letter-spacing: 0;
+  opacity: 0.8;
+}
+.sidebar-clock.collapsed {
+  font-size: 12px;
+  height: 80px;
+  letter-spacing: 0;
+  background: #a0cfff;
+}
+.aside-menu-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.aside-menu-wrapper::-webkit-scrollbar {
+  display: none;
+}
+.aside-menu-wrapper .el-menu {
+  border-right: none;
 }
 
 /* 侧边栏菜单 */

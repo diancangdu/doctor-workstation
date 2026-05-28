@@ -119,9 +119,9 @@ export default {
       </el-row>
     </el-card>
 
-    <el-row :gutter="20" v-if="patientRecords.length > 0">
+    <el-row :gutter="20" v-if="patientRecords.length > 0" type="flex" align="top">
       <el-col :span="12">
-        <el-card shadow="hover">
+        <el-card shadow="hover" style="height:100%">
           <div slot="header"><i class="el-icon-document"></i> 选择记录 A</div>
           <el-radio-group v-model="selectedAId" style="width:100%">
             <el-radio v-for="r in patientRecords" :key="'a'+r.recordId" :label="r.recordId" border style="width:100%; margin-bottom:5px">
@@ -132,7 +132,7 @@ export default {
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card shadow="hover">
+        <el-card shadow="hover" style="height:100%">
           <div slot="header"><i class="el-icon-document-copy"></i> 选择记录 B</div>
           <el-radio-group v-model="selectedBId" style="width:100%">
             <el-radio v-for="r in patientRecords" :key="'b'+r.recordId" :label="r.recordId" border style="width:100%; margin-bottom:5px">
@@ -169,4 +169,15 @@ export default {
 <style scoped>
 .compare-page { padding: 20px; }
 .page-title { font-size: 24px; color: #333; margin-bottom: 20px; }
+
+/* 修复 radio border 第一个不对齐的问题 */
+.el-radio.is-bordered + .el-radio.is-bordered {
+  margin-top: 5px;
+}
+.el-radio.is-bordered {
+  margin-left: 0 !important;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
 </style>

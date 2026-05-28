@@ -96,6 +96,7 @@ export default {
     <h2 class="page-title">挂号管理</h2>
 
     <el-button type="primary" icon="el-icon-plus" @click="dialogVisible = true" style="margin-bottom: 20px;">新建挂号</el-button>
+    <el-button type="success" icon="el-icon-s-data" style="margin-bottom: 20px; margin-left: 10px;">挂号实时录入</el-button>
 
     <el-table :data="registrations" stripe border>
       <el-table-column prop="registrationId" label="编号" width="70" />

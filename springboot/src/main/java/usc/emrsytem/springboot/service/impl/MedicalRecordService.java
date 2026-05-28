@@ -14,6 +14,7 @@ import usc.emrsytem.springboot.exception.ServiceException;
 import usc.emrsytem.springboot.mapper.AuditLogMapper;
 import usc.emrsytem.springboot.mapper.MedicalRecordMapper;
 import usc.emrsytem.springboot.service.IMedicalRecordService;
+import usc.emrsytem.springboot.utils.ExcelUtil;
 
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class MedicalRecordService implements IMedicalRecordService {
     MedicalRecordMapper medicalRecordMapper;
     @Autowired
     AuditLogMapper auditLogMapper;
+    @Autowired
+    ExcelUtil excelUtil;
 
     @Override
     @Transactional
@@ -60,11 +63,24 @@ public class MedicalRecordService implements IMedicalRecordService {
 
     @Override
     public int archiveMedicalRecord(Integer recordId) {
+        MedicalRecord record = medicalRecordMapper.getById(recordId);
+        if (record != null) {
+            String path = excelUtil.exportToCsv(record, "患者ID:" + record.getPatientId(), "医生ID:" + record.getDoctorId());
+            if (path != null) {
+                String oldRemarks = record.getRemarks() != null ? record.getRemarks() : "";
+                record.setRemarks(oldRemarks + (oldRemarks.isEmpty() ? "" : " ") + "[归档文件:" + path + "]");
+                medicalRecordMapper.updateMedicalRecord(record);
+            }
+        }
         return medicalRecordMapper.archiveMedicalRecord(recordId);
     }
 
     @Override
     public int restoreMedicalRecord(Integer recordId) {
+        MedicalRecord record = medicalRecordMapper.getById(recordId);
+        if (record != null) {
+            excelUtil.restoreToCsv(record, "患者ID:" + record.getPatientId(), "医生ID:" + record.getDoctorId());
+        }
         return medicalRecordMapper.restoreMedicalRecord(recordId);
     }
 

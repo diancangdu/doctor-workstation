@@ -43,10 +43,11 @@ export default {
       editRecordId: null,
       doctorInfo: {},
       drugAlerts: [],
+      previewVisible: false,
+      previewUrl: '',
       isSelectPatient: false,
       prescriptionOptions: [],
-      selectFromTable: false, // 是否从表格中选择
-      prescriptionId: null,
+      selectedPrescriptions: [], // 多选已有处方
       rules: {
         diagnosis: [{ required: true, message: '请输入诊断', trigger: 'blur' }],
       }
@@ -187,6 +188,13 @@ export default {
           let now = new Date()
           item.age = now.getFullYear() - dateOfBirth.getFullYear()
           this.isSelectPatient = true;
+          // 自动填入既往史
+          let past = [];
+          if (item.medicalHistory) past.push('既往病史：' + item.medicalHistory);
+          if (item.allergies) past.push('过敏史：' + item.allergies);
+          if (past.length > 0 && !this.editMode) {
+            this.form.pastHistory = past.join('；');
+          }
         })
       } catch (e) {
         this.$message.error(e)
@@ -209,6 +217,10 @@ export default {
     // 清除上传文件
     handleFileRemove(file) {
       this.chartList = this.chartList.filter(item => item.uid !== file.uid);
+    },
+    previewImage(url) {
+      this.previewUrl = url;
+      this.previewVisible = true;
     },
     // 上传成功
     handleSuccess(response, file) {
@@ -257,8 +269,13 @@ export default {
     // 提交表单
     onSubmit() {
       let patientUserId = Number(this.patientValue)
-      if (this.prescriptionId != null && this.prescriptionId !== '') {
-        this.form.prescriptionId = Number(this.prescriptionId)
+      // 融合已有处方
+      if (this.selectedPrescriptions.length > 0) {
+        const presetText = this.selectedPrescriptions.map(id => {
+          const p = this.prescriptionTable.find(item => item.prescriptionId === id);
+          return p ? `${p.medicationName} ${p.dosage || ''} ${p.frequency || ''} ${p.duration || ''}`.trim() : '';
+        }).filter(Boolean).join('\n');
+        this.form.prescription = (this.form.prescription || '') + (this.form.prescription ? '\n' : '') + presetText;
       }
 
       try {
@@ -292,11 +309,6 @@ export default {
         }
       })
       console.log(this.form)
-    },
-    handleChange() {
-      if (this.selectFromTable === false) {
-        this.prescriptionId = null;
-      }
     },
     loadTemplates() {
       request.get('/common/templates').then(res => {
@@ -452,8 +464,27 @@ export default {
 
         <!-- 处方 -->
         <el-divider content-position="left">处方与用药</el-divider>
+        <el-form-item label="已有处方">
+          <el-select v-model="selectedPrescriptions" multiple filterable placeholder="选择已有处方（可多选，默认无）" style="width:100%" clearable
+            popper-class="prescription-select-popper">
+            <el-option v-for="p in prescriptionOptions" :key="p.value" :label="p.label" :value="Number(p.value)">
+              <el-tooltip :open-delay="300" placement="right" effect="light" popper-class="rx-tooltip">
+                <div slot="content" style="max-width:280px;line-height:1.8">
+                  <template v-for="item in prescriptionTable.filter(r => r.prescriptionId === Number(p.value))">
+                    <p><b>药品：</b>{{ item.medicationName }}</p>
+                    <p><b>剂量：</b>{{ item.dosage || '-' }} &nbsp; <b>频次：</b>{{ item.frequency || '-' }}</p>
+                    <p><b>疗程：</b>{{ item.duration || '-' }}</p>
+                    <p><b>用法：</b>{{ item.instructions || '-' }}</p>
+                    <p><b>备注：</b>{{ item.remarks || '-' }}</p>
+                  </template>
+                </div>
+                <span>{{ p.label }}</span>
+              </el-tooltip>
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="开具处方">
-          <el-input type="textarea" v-model="form.prescription" :rows="3" placeholder="药品名称 剂量 频次 疗程，每行一个" />
+          <el-input type="textarea" v-model="form.prescription" :rows="4" placeholder="药品名称 剂量 频次 疗程，每行一个。也可以上方多选已有处方，会自动追加到此处" />
         </el-form-item>
         <el-form-item label="用药提醒" v-if="drugAlerts.length > 0">
           <el-alert v-for="a in drugAlerts" :key="a" :title="a" type="warning" show-icon :closable="false" style="margin-bottom:5px" />
@@ -477,6 +508,17 @@ export default {
             <div class="el-upload__tip" slot="tip">可上传多张图像，单张不超过8mb</div>
           </el-upload>
         </el-form-item>
+        <!-- 图片缩略预览 -->
+        <el-form-item v-if="chartList.length > 0" label="已上传">
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <div v-for="(img, i) in chartList" :key="i"
+              v-if="img.url"
+              style="position:relative;width:100px;height:100px;border:1px solid #ddd;border-radius:4px;overflow:hidden;cursor:pointer"
+              @click="previewImage(img.url)">
+              <img :src="img.url" style="width:100%;height:100%;object-fit:cover" />
+            </div>
+          </div>
+        </el-form-item>
         <el-form-item label="备注">
           <el-input type="textarea" v-model="form.remarks" :rows="2" />
         </el-form-item>
@@ -488,6 +530,10 @@ export default {
       </el-form>
     </div>
 
+    <!-- 图片预览弹窗 -->
+    <el-dialog :visible.sync="previewVisible" width="60%" title="查看图像">
+      <img :src="previewUrl" style="width:100%" />
+    </el-dialog>
   </div>
 </template>
 
@@ -555,5 +601,11 @@ export default {
 /* 选择框样式 */
 .select-box {
   width: 100%;
+}
+</style>
+
+<style>
+.rx-tooltip {
+  z-index: 3000 !important;
 }
 </style>

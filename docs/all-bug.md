@@ -22,6 +22,10 @@
 | 16 | 病历详情图片查看消失 | [ViewMedicalRecord.vue](../src/views/MedicalRecord/ViewMedicalRecord.vue) | [→](#bug-16病历详情图片查看消失) |
 | 17 | 医患关系表部分患者显示为空 | [BindPatientAndDoctor.vue](../src/views/MedicalRecord/BindPatientAndDoctor.vue) | [→](#bug-17医患关系表部分患者显示为空) |
 | 18 | 保存病历/编辑后不返回原页面 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-18保存病历编辑后不返回原页面) |
+| 19 | 前端启动报错（模板两个根元素） | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-19前端启动报错模板两个根元素) |
+| 20 | 病历对比左右 UI 错位 | [CompareMedicalRecord.vue](../src/views/MedicalRecord/CompareMedicalRecord.vue) | [→](#bug-20病历对比左右-ui-错位) |
+| 21 | 侧边栏收起时时钟导致蓝色背景错位 | [AppAside.vue](../src/components/AppAside.vue) | [→](#bug-21侧边栏收起时时钟导致蓝色背景错位) |
+| 22 | el-popover 在 el-option 内编译错误 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-22el-popover-在-el-option-内编译错误) |
 
 ---
 
@@ -592,3 +596,116 @@ if (this.editMode) this.$router.back();
 |------|------|
 | 影响范围 | 新增病历 + 编辑病历 |
 | 副作用 | 无 |
+
+---
+
+## Bug 19：前端启动报错（模板两个根元素）
+
+**涉及文件：** [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue)
+
+### 问题描述
+
+前端 `npm run serve` 启动失败，报错 `Component template should contain exactly one root element`。
+
+### 根因分析
+
+图片预览弹窗 `<el-dialog>` 放在了 `<div class="container">` 外面，导致模板有两个根元素。Vue 2 要求模板必须只有一个根元素。
+
+### 修复内容
+
+将 `<el-dialog>` 移到 `container` div 内部：
+
+```diff
+-  </div>
+     <el-dialog :visible.sync="previewVisible">
+       <img :src="previewUrl" />
+     </el-dialog>
++  </div>
+```
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | AddMedicalRecord.vue 编译 |
+| 副作用 | 无，弹窗功能正常 |
+
+---
+
+## Bug 20：病历对比左右 UI 错位
+
+**涉及文件：** [CompareMedicalRecord.vue](../src/views/MedicalRecord/CompareMedicalRecord.vue)
+
+### 问题描述
+
+病历对比页面选择记录 A 和 B 的两个卡片高度不一致，视觉错位。首项 radio 有偏移。
+
+### 根因分析
+
+1. `el-row` 未使用 flex 布局，卡片高度随内容变化
+2. Element UI 的 `el-radio.is-bordered` 自带 `margin-left: 10px` 导致首项偏移
+
+### 修复内容
+
+1. `el-row` 加 `type="flex" align="top"`，卡片加 `height:100%`
+2. 加 scoped CSS 覆盖 radio 的 margin 和 display
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | CompareMedicalRecord.vue |
+| 副作用 | 无 |
+
+---
+
+## Bug 21：侧边栏收起时时钟导致蓝色背景错位
+
+**涉及文件：** [AppAside.vue](../src/components/AppAside.vue)
+
+### 问题描述
+
+侧边栏收起后出现大面积蓝色背景，菜单整体下移，时钟区域与菜单区域互相干扰。
+
+### 根因分析
+
+时钟 div 和菜单 div 未做好布局隔离。收起时时钟区域尺寸不变导致超出侧边栏宽度，且背景色与侧边栏底色不一致形成色块。
+
+### 修复内容
+
+1. 使用 flex 布局分离时钟区（`flex-shrink: 0`）和菜单区（`flex: 1; overflow-y: auto`）
+2. 展开时背景 `#53a8ff`（与 header 一致），收起时背景 `#a0cfff`（与侧边栏一致）
+3. 收起时只显示 `HH:MM`，字号缩小
+4. 隐藏菜单区滚动条
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | AppAside.vue |
+| 副作用 | 无 |
+
+---
+
+## Bug 22：el-popover 在 el-option 内编译错误
+
+**涉及文件：** [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue)
+
+### 问题描述
+
+处方选择下拉框中 `el-popover` 嵌套在 `el-option` 内导致前端编译失败。
+
+### 根因分析
+
+Element UI 的 `el-popover` 和 `el-option` 嵌套使用存在兼容性问题，`slot="reference"` 在 option 内部无法正常渲染。
+
+### 修复内容
+
+移除 `el-popover`，改为选中处方后下方卡片展示详情，同时保留多选下拉框。
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | AddMedicalRecord.vue 编译 |
+| 副作用 | 详情展示方式改为卡片而非悬浮 |

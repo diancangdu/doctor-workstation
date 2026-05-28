@@ -14,7 +14,6 @@ export default {
       this.$router.push("/login")
     }
   }
-
 }
 </script>
 
@@ -25,7 +24,8 @@ export default {
         <img src="@/assets/logo.png" alt="logo" style="width: 40px; position: relative; top: 10px; left: 20px">
         <span style="margin-left: 25px; font-size: 24px;">医生工作站系统</span>
       </div>
-      <div style="flex: 1; text-align: right; padding-right: 20px">
+      <div style="flex: 1"></div>
+      <div style="text-align: right; padding-right: 20px">
         <el-dropdown placement="bottom">
             <span class="el-dropdown-link user-label" style="text-align: right; font-size: 18px; cursor: pointer">
               {{ user.username }}<i class="el-icon-arrow-down el-icon--right"></i>
