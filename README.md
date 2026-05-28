@@ -93,11 +93,26 @@ npm install
 | 脚本 | 说明 |
 |------|------|
 | [start-all.bat](start-all.bat) | 一键启动后端 + 前端 |
-| [start-backend.bat](start-backend.bat) | 仅启动后端 |
 | [start-frontend.bat](start-frontend.bat) | 仅启动前端 |
 | [stop.bat](stop.bat) | 关闭所有项目进程 |
 
-> 双击 `start-all.bat` 即可启动全部服务，双击 `stop.bat` 关闭。
+双击即可运行，或在 VSCode 终端输入：
+
+```bash
+.\start-all.bat    # 启动
+.\stop.bat         # 关闭
+```
+
+> 端口统一在 [project-config.json](project-config.json) 中修改。
+>
+> 端口统一在 [project-config.json](project-config.json) 中修改，改完后所有文件自动生效：
+
+| 端口 | 用途 | 还需改的文件（非端口，仅此一处额外配置） | 跳转 |
+|------|------|------|------|
+| 9090 | 后端 API | `server.port` | [application.yml](springboot/src/main/resources/application.yml) |
+| 8080 | 前端开发服务器 | `devServer.port` | [vue.config.js](vue.config.js) |
+
+> 前端请求地址和上传地址已自动读取 `project-config.json` 中的 `backendPort`，无需额外修改。
 
 ### 手动启动
 
@@ -127,16 +142,9 @@ npm run serve
 
 启动成功后前端运行在 **http://localhost:8080**，浏览器访问即可。
 
-> **如果需要修改端口：**
+> **如果需要修改端口：** 修改 [project-config.json](project-config.json) 中的 backendPort 和 frontendPort，再同步 [application.yml](springboot/src/main/resources/application.yml) 的 server.port 和 [vue.config.js](vue.config.js) 的 devServer.port。[request.js](src/utils/request.js) 和 [AddMedicalRecord.vue](src/views/MedicalRecord/AddMedicalRecord.vue) 自动跟随，无需手动修改。
 
-| 端口 | 用途 | 修改文件 | 跳转 |
-|------|------|----------|------|
-| 9090 | 后端 API 端口 | 改 `server.port` | [application.yml](springboot/src/main/resources/application.yml) |
-| 9090 | 前端请求地址 | 改 `baseURL` | [request.js](src/utils/request.js) |
-| 9090 | 图片上传地址 | 改 `action` | [AddMedicalRecord.vue](src/views/MedicalRecord/AddMedicalRecord.vue) |
-| 8080 | 前端开发服务器 | 添加 `devServer.port` | [vue.config.js](vue.config.js) |
-
-修改 [vue.config.js](vue.config.js) 示例：
+[vue.config.js](vue.config.js) 示例：
 
 ```js
 module.exports = defineConfig({

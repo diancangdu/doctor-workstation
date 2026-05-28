@@ -1,6 +1,7 @@
 <script>
 import request from "@/utils/request";
 import Cookies from "js-cookie";
+import config from '@/../project-config.json';
 
 export default {
   name: 'AddMedicalRecord',
@@ -494,7 +495,7 @@ export default {
         <el-divider content-position="left">附件</el-divider>
         <el-form-item label="上传图像">
           <el-upload
-              action="http://localhost:9090/api/upload"
+              :action="'http://localhost:' + config.backendPort + '/api/upload'"
               ref="upload" drag multiple
               :file-list="chartList"
               :before-upload="beforeUpload"

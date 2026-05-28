@@ -1,9 +1,10 @@
 import axios from 'axios';
 import auth from './auth';
-import Cookies from "js-cookie"; // 引入 auth.js
+import Cookies from "js-cookie";
+import config from '@/../project-config.json';
 
 const request = axios.create({
-    baseURL: 'http://localhost:9090/api',
+    baseURL: 'http://localhost:' + config.backendPort + '/api',
     timeout: 5000,
 })
 
