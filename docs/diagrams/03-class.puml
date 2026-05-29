@@ -1,0 +1,361 @@
+@startuml 医生工作站系统类图
+' ============================================
+' 医生工作站系统 — 类图（实体层+服务层+控制层）
+' 标注多重度（Multiplicity）
+' ============================================
+
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+skinparam class {
+  BackgroundColor #F3E5F5
+  BorderColor #7B1FA2
+  FontColor #4A148C
+}
+skinparam interface {
+  BackgroundColor #E8EAF6
+  BorderColor #283593
+}
+
+title 医生工作站系统 — 类图（实体关联 + 多重度）
+
+' ============================================
+' === 实体类（Entity Layer） ===
+' ============================================
+package "实体层 (Entity)" #E8EAF6 {
+
+  class User {
+    - userId : Integer {PK}
+    - username : String
+    - password : String
+    - role : String
+    - email : String
+    - phoneNumber : String
+    - createdAt : Timestamp
+    - lastLoginAt : Timestamp
+    - status : boolean
+  }
+
+  class Doctor {
+    - doctorId : Integer {PK}
+    - userId : Integer {FK}
+    - department : String
+    - gender : String
+    - specialty : String
+    - experienceYears : Integer
+    - qualification : String
+    - title : String
+    - updatedAt : Timestamp
+  }
+
+  class Patient {
+    - patientId : Integer {PK}
+    - userId : Integer {FK}
+    - gender : String
+    - dateOfBirth : Date
+    - address : String
+    - emergencyContact : String
+    - contactPhone : String
+    - medicalHistory : String
+    - allergies : String
+    - updatedAt : Timestamp
+  }
+
+  class Admin {
+    - adminId : Integer {PK}
+    - userId : Integer {FK}
+    - adminLevel : String
+    - department : String
+    - updatedAt : Timestamp
+  }
+
+  class DoctorPatient {
+    - doctorPatientId : Integer {PK}
+    - doctorId : Integer {FK}
+    - patientId : Integer {FK}
+  }
+
+  class MedicalRecord {
+    - recordId : Integer {PK}
+    - patientId : Integer {FK}
+    - doctorId : Integer {FK}
+    - prescriptionId : Integer {FK}
+    - diagnosis : String
+    - symptoms : String
+    - chart : String
+    - remarks : String
+    - prescription : String
+    - status : String
+    - chiefComplaint : String
+    - presentIllness : String
+    - pastHistory : String
+    - physicalExam : String
+    - recordStatus : String
+    - voidReason : String
+    - supplement : String
+    - totalFee : BigDecimal
+    - createdAt : Timestamp
+    - updatedAt : Timestamp
+  }
+
+  class Prescription {
+    - prescriptionId : Integer {PK}
+    - doctorId : Integer {FK}
+    - medicationName : String
+    - dosage : String
+    - frequency : String
+    - duration : String
+    - instructions : String
+    - remarks : String
+    - unitPrice : BigDecimal
+    - totalPrice : BigDecimal
+    - createdAt : Timestamp
+  }
+
+  class Registration {
+    - registrationId : Integer {PK}
+    - patientId : Integer {FK}
+    - patientUserId : Integer {FK}
+    - doctorId : Integer {FK}
+    - department : String
+    - chiefComplaint : String
+    - queueNumber : Integer
+    - status : String
+    - registrationTime : Timestamp
+    - consultationTime : Timestamp
+    - completionTime : Timestamp
+  }
+
+  class DiagnosisTemplate {
+    - templateId : Integer {PK}
+    - department : String
+    - diagnosisName : String
+    - symptoms : String
+    - prescriptionHint : String
+    - usageCount : Integer
+  }
+
+  class DrugInfo {
+    - drugId : Integer {PK}
+    - drugName : String
+    - specification : String
+    - unitPrice : BigDecimal
+    - dosageHint : String
+    - frequencyHint : String
+    - indications : String
+    - contraindications : String
+    - adverseReactions : String
+    - interactions : String
+  }
+
+  class AuditLog {
+    - logId : Integer {PK}
+    - recordId : Integer {FK}
+    - userId : Integer {FK}
+    - username : String
+    - action : String
+    - detail : String
+    - createdAt : Timestamp
+  }
+}
+
+' ============================================
+' === 实体关联关系（多重度标注） ===
+' ============================================
+
+User "1" -- "0..1" Doctor : userId
+User "1" -- "0..1" Patient : userId
+User "1" -- "0..1" Admin : userId
+
+Doctor "1" -- "0..*" DoctorPatient : doctorId
+Patient "1" -- "0..*" DoctorPatient : patientId
+
+Doctor "1" -- "0..*" MedicalRecord : doctorId \n[一位医生书写多份病历]
+Patient "1" -- "0..*" MedicalRecord : patientId \n[一位患者有多份病历]
+Prescription "0..1" -- "0..*" MedicalRecord : prescriptionId \n[处方可关联多份病历]
+
+Doctor "1" -- "0..*" Prescription : doctorId \n[一位医生开具多份处方]
+
+Patient "1" -- "0..*" Registration : patientId \n[一个患者可多次挂号]
+Doctor "1" -- "0..*" Registration : doctorId \n[一个医生有多个挂号]
+
+MedicalRecord "1" -- "0..*" AuditLog : recordId \n[一份病历有多条操作日志]
+User "1" -- "0..*" AuditLog : userId
+
+' ============================================
+' === 控制层 (Controller Layer) ===
+' ============================================
+package "控制层 (Controller)" #FCE4EC {
+
+  class UserController {
+    + list() : Result
+    + page(UserPageRequest) : Result
+    + patient(pageSize) : Result
+    + doctor() : Result
+    + admin() : Result
+    + getByUserId(userId) : Result
+    + addPatient(Patient) : Result
+    + addDoctor(Doctor) : Result
+    + addAdmin(Admin) : Result
+    + deleteUserByRole(BaseRequest) : Result
+    + updateUser(User) : Result
+    + updatePatient(Patient) : Result
+    + updateDoctor(Doctor) : Result
+    + updateAdmin(Admin) : Result
+    + login(LoginRequest) : Result
+    + updatePassword(PasswordRequest) : Result
+    + changePassword(ChangePasswordRequest) : Result
+  }
+
+  class MedicalRecordController {
+    + add(AddMedicalRecordRequest) : Result
+    + getById(recordId) : Result
+    + list(RecordRequest) : Result
+    + update(MedicalRecord) : Result
+    + archive(recordId) : Result
+    + restore(recordId) : Result
+    + confirm(recordId) : Result
+    + void(recordId, voidReason) : Result
+    + supplement(recordId, supplement) : Result
+    + auditLogs(recordId) : Result
+    + delete(recordId) : Result
+  }
+
+  class PrescriptionController {
+    + add(AddPrescriptionRequest) : Result
+    + list(PrescriptionRequest) : Result
+    + delete(id) : Result
+  }
+
+  class RegistrationController {
+    + add(Registration) : Result
+    + list(status, doctorId, patientId) : Result
+    + queue(doctorId) : Result
+    + start(id) : Result
+    + complete(id) : Result
+    + cancel(id) : Result
+  }
+
+  class DoctorPatientController {
+    + add(DoctorPatientRequest) : Result
+    + getByUserId(userId) : Result
+    + delete(doctorUserId, patientUserId) : Result
+    + deleteByPatientId(patientUserId) : Result
+  }
+
+  class CommonController {
+    + templates(department) : Result
+    + drugs() : Result
+    + drug(name) : Result
+  }
+
+  class UploadController {
+    + upload(file) : Result
+  }
+}
+
+' ============================================
+' === 服务层 (Service Layer) ===
+' ============================================
+package "服务层 (Service)" #E0F2F1 {
+
+  interface IUserService {
+    + login(LoginRequest) : LoginDTO
+    + addPatient(Patient) : void
+    + addDoctor(Doctor) : void
+    + addAdmin(Admin) : void
+    + deleteUserById(id) : void
+    + updateUser(User) : void
+    + changePassword(request) : void
+    + getByUserId(userId) : Object
+  }
+
+  interface IMedicalRecordService {
+    + addMedicalRecord(request) : void
+    + getById(recordId) : MedicalRecord
+    + listRecords(request) : List
+    + updateMedicalRecord(record) : void
+    + confirmMedicalRecord(recordId, userId, username) : void
+    + voidMedicalRecord(recordId, reason) : void
+    + supplementMedicalRecord(recordId, supplement) : void
+    + archiveMedicalRecord(recordId) : void
+    + restoreMedicalRecord(recordId) : void
+    + getAuditLogs(recordId) : List
+  }
+
+  interface IPrescriptionService {
+    + addPrescription(request) : void
+    + listPrescription(request) : List
+    + deletePrescription(id) : void
+  }
+
+  interface IRegistrationService {
+    + addRegistration(reg) : void
+    + listRegistrations(...) : List
+    + getDoctorQueue(doctorId) : List
+    + startConsultation(id) : void
+    + completeConsultation(id) : void
+    + cancelRegistration(id) : void
+  }
+
+  interface IDoctorPatientService {
+    + addDoctorPatient(request) : void
+    + getByUserId(userId) : List
+    + deleteByUserId(doctorUserId, patientUserId) : void
+    + deleteByPatientUserId(patientUserId) : void
+  }
+
+  class UserService implements IUserService
+  class MedicalRecordService implements IMedicalRecordService
+  class PrescriptionService implements IPrescriptionService
+  class RegistrationService implements IRegistrationService
+  class DoctorPatientService implements IDoctorPatientService
+}
+
+' ============================================
+' === 数据访问层 (Mapper Layer) ===
+' ============================================
+package "数据访问层 (Mapper)" #FFF3E0 {
+
+  interface UserMapper {
+    + findAll() : List<User>
+    + findById(id) : User
+    + findByPhone(phone) : User
+    + insert(user) : void
+    + update(user) : void
+    + delete(id) : void
+  }
+
+  interface MedicalRecordMapper {
+    + findAll(request) : List<MedicalRecord>
+    + findById(id) : MedicalRecord
+    + insert(record) : void
+    + update(record) : void
+    + archive(id) : void
+    + restore(id) : void
+    + delete(id) : void
+  }
+
+  interface PrescriptionMapper
+  interface RegistrationMapper
+  interface DoctorPatientMapper
+  interface AuditLogMapper
+  interface DiagnosisTemplateMapper
+  interface DrugInfoMapper
+}
+
+' === Controller → Service 依赖 ===
+UserController --> IUserService
+MedicalRecordController --> IMedicalRecordService
+PrescriptionController --> IPrescriptionService
+RegistrationController --> IRegistrationService
+DoctorPatientController --> IDoctorPatientService
+
+' === Service → Mapper 依赖 ===
+UserService --> UserMapper
+MedicalRecordService --> MedicalRecordMapper
+MedicalRecordService --> AuditLogMapper
+PrescriptionService --> PrescriptionMapper
+RegistrationService --> RegistrationMapper
+DoctorPatientService --> DoctorPatientMapper
+
+@enduml

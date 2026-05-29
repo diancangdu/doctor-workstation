@@ -5,7 +5,7 @@
 | 编号 | Bug 描述 | 涉及文件 | 跳转 |
 |------|----------|----------|------|
 | 1 | 查看名下患者偶现重复数据 | [AssignedPatients.vue](../src/views/MedicalRecord/AssignedPatients.vue) | [→](#bug-1查看名下患者偶现重复数据) |
-| 2 | 管理员账号可被删除 | [UserTable.vue](../src/views/user/UserTable.vue) · [UserService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/UserService.java) | [→](#bug-2管理员账号可被删除) |
+| 2 | 管理员账号可被删除 | [UserTable.vue](../src/views/user/UserTable.vue) · [UserService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/UserService.java) | [→](#bug-2管理员账号可被删除) |
 | 3 | 查询用户页面操作列 UI 拥挤 | [UserTable.vue](../src/views/user/UserTable.vue) | [→](#bug-3查询用户页面操作列-ui-拥挤) |
 | 4 | updated() 无限循环导致密码被破坏 | [UserTable.vue](../src/views/user/UserTable.vue) | [→](#bug-4updated-无限循环导致密码被破坏) |
 | 5 | 医生角色越权操作 + 修改密码无响应 | [UserTable.vue](../src/views/user/UserTable.vue) | [→](#bug-5医生角色在查询用户页面存在越权操作) |
@@ -18,7 +18,7 @@
 | 12 | 挂号管理列表排序不对 | [Registration.xml](../springboot/src/main/resources/mapper/Registration.xml) | [→](#bug-12挂号管理列表排序不对) |
 | 13 | 个人中心性别显示为英文 | [PersonalCenter.vue](../src/views/person/PersonalCenter.vue) | [→](#bug-13个人中心性别显示为英文) |
 | 14 | 编辑病历上传图片后不显示 | [MedicalRecord.xml](../springboot/src/main/resources/mapper/MedicalRecord.xml) | [→](#bug-14编辑病历上传图片后不显示) |
-| 15 | 编辑时未自动录入草稿信息 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) · [MedicalRecordController.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/MedicalRecordController.java) | [→](#bug-15编辑时未自动录入草稿信息) |
+| 15 | 编辑时未自动录入草稿信息 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) · [MedicalRecordController.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/MedicalRecordController.java) | [→](#bug-15编辑时未自动录入草稿信息) |
 | 16 | 病历详情图片查看消失 | [ViewMedicalRecord.vue](../src/views/MedicalRecord/ViewMedicalRecord.vue) | [→](#bug-16病历详情图片查看消失) |
 | 17 | 医患关系表部分患者显示为空 | [BindPatientAndDoctor.vue](../src/views/MedicalRecord/BindPatientAndDoctor.vue) | [→](#bug-17医患关系表部分患者显示为空) |
 | 18 | 保存病历/编辑后不返回原页面 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-18保存病历编辑后不返回原页面) |
@@ -26,6 +26,9 @@
 | 20 | 病历对比左右 UI 错位 | [CompareMedicalRecord.vue](../src/views/MedicalRecord/CompareMedicalRecord.vue) | [→](#bug-20病历对比左右-ui-错位) |
 | 21 | 侧边栏收起时时钟导致蓝色背景错位 | [AppAside.vue](../src/components/AppAside.vue) | [→](#bug-21侧边栏收起时时钟导致蓝色背景错位) |
 | 22 | el-popover 在 el-option 内编译错误 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-22el-popover-在-el-option-内编译错误) |
+| 23 | 新增病历选中患者无反应 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-23新增病历选中患者无反应) |
+| 24 | 选中患者后表单渲染崩溃 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | [→](#bug-24选中患者后表单渲染崩溃) |
+| 25 | 多 API 返回 401 导致路由跳转报错 | [main.js](../src/main.js) | [→](#bug-25多-api-返回-401-导致路由跳转报错) |
 
 ---
 
@@ -69,7 +72,7 @@ created() {
 
 **涉及文件：**
 - [src/views/user/UserTable.vue](../src/views/user/UserTable.vue)
-- [springboot/…/service/impl/UserService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/UserService.java)
+- [springboot/…/service/impl/UserService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/UserService.java)
 
 ### 问题描述
 
@@ -480,9 +483,9 @@ ORDER BY field(r.status, 'waiting', 'in_progress', 'completed', 'cancelled'), r.
 
 **涉及文件：**
 - [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue)
-- [MedicalRecordController.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/MedicalRecordController.java)
-- [IMedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/IMedicalRecordService.java)
-- [MedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/MedicalRecordService.java)
+- [MedicalRecordController.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/MedicalRecordController.java)
+- [IMedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/IMedicalRecordService.java)
+- [MedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/MedicalRecordService.java)
 
 ### 问题描述
 
@@ -709,3 +712,105 @@ Element UI 的 `el-popover` 和 `el-option` 嵌套使用存在兼容性问题，
 |------|------|
 | 影响范围 | AddMedicalRecord.vue 编译 |
 | 副作用 | 详情展示方式改为卡片而非悬浮 |
+
+---
+
+## Bug 23：新增病历选中患者无反应
+
+**涉及文件：** [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue)
+
+### 问题描述
+
+在新增病历页面点击患者下拉框选择患者后，表单区域不出现，没有任何反应。同时从接诊排队页点击"书写病历"，预设患者也无法自动选中。
+
+### 根因分析
+
+下拉选项 `patientOptions` 和选中查找逻辑 `selectPatient()` 使用了**两个不同的数据源**：
+
+- `patientOptions` 来自 `load()` → `/user/page?pageSize=13` → 过滤 `role='patient'`
+- `selectPatient()` 搜索 `patientTableData` 来自 `loadPatientsTable()` → `/user/patient?pageSize=13`
+
+两个接口各自只返回 13 条，系统实际有 23 名患者。选中了一个在 `patientOptions` 里但不在 `patientTableData` 里的患者，`selectPatient()` 遍历不到，静默失败。
+
+### 修复内容
+
+1. **统一数据源** — `patientOptions` 改为从 `patientTableData` 生成（`loadPatientsTable` 回调中调用 `generateOptions`）
+2. **全量加载** — `loadPatientsTable` 的 `pageSize` 从 13 改为 999，一次性加载全部患者
+3. **兼容数据结构** — `generateOptions` 适配 Patient 对象（`username` 在 `user.username` 下）
+4. **失败提示** — 选中后找不到患者时弹出 `$message.warning`
+5. **回调模式** — 用串行回调替代 `watch`，确保 `patientOptions` 就绪后再处理预选逻辑
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | AddMedicalRecord.vue（新增病历页） |
+| 根因 | 双数据源分页不一致 |
+| 副作用 | 无 |
+
+---
+
+## Bug 24：选中患者后表单渲染崩溃
+
+**涉及文件：** [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue)
+
+### 问题描述
+
+Bug 23 修复后，选中患者时表单仍然不出现，浏览器控制台报错：`Property or method "config" is not defined on the instance` 和 `Cannot read properties of undefined (reading 'backendPort')`。
+
+### 根因分析
+
+上传组件 `<el-upload>` 的 `:action` 属性引用了 `config.backendPort`。`config` 是 `import config from '@/../project-config.json'` 导入的模块级变量，但在 Vue 2 模板中，变量通过组件实例 `this.xxx` 解析，模块级导入不在 `data()` 中声明则模板不可访问。
+
+此前 Bug 23 未修复时，`isSelectPatient` 始终为 `false`，表单区域（含上传组件）未渲染，错误被隐藏。Bug 23 修复后表单首次尝试渲染，`config` 未定义导致整个页面崩溃。
+
+### 修复内容
+
+在 `data()` 中新增 `config: config`，将模块级导入暴露为组件实例属性。
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | AddMedicalRecord.vue（表单渲染阶段） |
+| 根因 | Vue 2 模板无法访问模块级 import，被 Bug 23 隐藏 |
+| 副作用 | 无 |
+
+---
+
+## Bug 25：多 API 返回 401 导致路由跳转报错
+
+**涉及文件：** [main.js](../src/main.js)
+
+### 问题描述
+
+服务重启后，浏览器缓存的旧 token 失效。前端页面同时发起多个 API 请求，全部返回 401。每个 401 触发一次 `router.push('/login')`，Vue Router 报错：`Navigation cancelled from "/xxx" to "/login" with a new navigation`。
+
+### 根因分析
+
+`main.js` 中 `auth.$on('unauthorized', ...)` 监听器每次收到 401 事件都执行 `router.push('/login')`，无防重入保护。多个 API 同时返回 401 时，第一次导航被第二次取消，触发 "Navigation cancelled" 错误。
+
+### 修复内容
+
+添加 `toLogin` 防重入锁：
+
+```javascript
+let toLogin = false;
+auth.$on('unauthorized', () => {
+    if (!toLogin && router.currentRoute.path !== '/login') {
+        toLogin = true;
+        router.push('/login');
+    }
+});
+router.afterEach(() => {
+    toLogin = false;
+});
+```
+
+### 影响评估
+
+| 项目 | 说明 |
+|------|------|
+| 影响范围 | main.js（全局路由守卫） |
+| 根因 | 多个 401 响应并发触发多次登录导航 |
+| 副作用 | 无 |

@@ -8,10 +8,8 @@ export default {
   data() {
     return {
       user: Cookies.get("user") ? JSON.parse(Cookies.get("user")) : {},
-      patientOptions: [{
-        value: '病人 Id: xx',
-        label: 'Id'
-      }],
+      config: config,
+      patientOptions: [],
       patientValue: '',
       selectedPatient: [],
       total: 0,
@@ -55,30 +53,30 @@ export default {
     }
   },
   created() {
-    if(this.user.role === 'doctor') {
-      this.isDoctor = true;
-      this.load();
-      this.loadDoctors();
-      this.loadDoctorInfo();
-      this.loadTemplates();
-      this.listPrescription();
-      // 编辑模式
-      const editId = this.$route.query.edit;
-      if (editId) {
-        this.editMode = true;
-        this.editRecordId = Number(editId);
-      }
-      const preSelectId = this.$route.query.patientId;
-      this.loadPatientsTable(() => {
-        if (editId) this.loadExistingRecord();
-        if (preSelectId) {
-          this.patientValue = preSelectId;
-          this.selectPatient();
-        }
-      });
-    } else {
+    if(this.user.role !== 'doctor') {
       this.$message.error("您非医生，无法添加病历")
+      return
     }
+    this.isDoctor = true;
+    this.loadDoctors();
+    this.loadDoctorInfo();
+    this.loadTemplates();
+    this.listPrescription();
+    // 并行加载全部患者，完成后驱动后续逻辑
+    const editId = this.$route.query.edit;
+    const preSelectId = this.$route.query.patientId;
+    if (editId) {
+      this.editMode = true;
+      this.editRecordId = Number(editId);
+    }
+    this.loadPatientsTable(() => {
+      if (editId) {
+        this.loadExistingRecord();
+      } else if (preSelectId) {
+        this.patientValue = preSelectId;
+        this.selectPatient();
+      }
+    });
   },
   methods: {
     // 获取医生信息
@@ -103,19 +101,21 @@ export default {
           this.total = res.data.total
           // console.log(JSON.stringify(this.userData))
           this.loadPatients()
-          this.generateOptions(this.patientData, 'patient')
         }
       })
     },
-    // 获取患者信息
+    // 获取患者信息（全量加载以确保下拉和选中数据一致）
     loadPatientsTable(callback) {
-      request.get('/user/patient', {params: this.params}).then(res => {
+      request.get('/user/patient', {params: {pageSize: 999}}).then(res => {
         if (res.code === '200') {
           this.patientTableData = res.data.list
+          this.generateOptions(this.patientTableData, 'patient')
           if (callback) callback();
         } else {
           this.$message.error(res.msg)
         }
+      }).catch(() => {
+        this.$message.error('加载患者列表失败')
       })
     },
     // 处理选项
@@ -129,9 +129,10 @@ export default {
         })
       } else if (type === 'patient') {
         this.patientOptions = data.map(item => {
+          const name = item.username || (item.user && item.user.username) || ''
           return {
-            value: item.userId.toString(),
-            label: `${item.username} Id: ${item.userId}` // 拼接username和userId
+            value: (item.userId || (item.user && item.user.userId) || '').toString(),
+            label: `${name} Id: ${item.userId || (item.user && item.user.userId)}`
           }
         })
       } else if (type === 'prescription') {
@@ -176,7 +177,11 @@ export default {
             this.selectedPatient.push(this.patientTableData[i])
           }
         }
-        // console.log(this.selectedPatient)
+        if (this.selectedPatient.length === 0) {
+          this.$message.warning('未找到该患者信息，请重新选择')
+          this.isSelectPatient = false
+          return
+        }
         this.selectedPatient.forEach(item => {
           // 处理患者性别，female->女，male->男
           if(item.gender === 'female') {

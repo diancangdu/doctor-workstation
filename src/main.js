@@ -45,11 +45,16 @@ Vue.component(
     "AppMain", AppMain
 )
 
-// 监听未授权事件
+// 监听未授权事件（防重复跳转）
+let toLogin = false;
 auth.$on('unauthorized', () => {
-    if (router.currentRoute.path !== '/login') {
+    if (!toLogin && router.currentRoute.path !== '/login') {
+        toLogin = true;
         router.push('/login');
     }
+});
+router.afterEach(() => {
+    toLogin = false;
 });
 
 new Vue({

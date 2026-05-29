@@ -1,0 +1,254 @@
+@startuml 医生工作站系统ER图
+' ============================================
+' 医生工作站系统 — 数据库 ER 图
+' 采用 IE (Information Engineering) 表示法
+' ============================================
+
+skinparam backgroundColor #FEFEFE
+skinparam entity {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+  FontColor #1B5E20
+}
+skinparam rectangle {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+
+title 医生工作站系统 — 数据库 ER 图\n（11 张表，外键关系标注于表定义中）
+
+' ============================================
+' === user 表（用户基表） ===
+' ============================================
+entity "user" as user {
+  + user_id : INT <<PK>>
+  --
+  username : VARCHAR(50) <<NOT NULL>>
+  password : VARCHAR(255) <<NOT NULL, BCrypt>>
+  role : VARCHAR(20) <<NOT NULL, 'admin'|'doctor'|'patient'>>
+  email : VARCHAR(100)
+  phone_number : VARCHAR(20) <<UNIQUE>>
+  created_at : TIMESTAMP
+  last_login_at : TIMESTAMP
+  status : BOOLEAN
+}
+
+' ============================================
+' === doctor 表 ===
+' ============================================
+entity "doctor" as doctor {
+  + doctor_id : INT <<PK>>
+  --
+  # user_id : INT <<FK→user.user_id, NOT NULL>>
+  department : VARCHAR(100)
+  gender : VARCHAR(10)
+  specialty : VARCHAR(200)
+  experience_years : INT
+  qualification : VARCHAR(200)
+  title : VARCHAR(100)
+  updated_at : TIMESTAMP
+}
+
+' ============================================
+' === patient 表 ===
+' ============================================
+entity "patient" as patient {
+  + patient_id : INT <<PK>>
+  --
+  # user_id : INT <<FK→user.user_id, NOT NULL>>
+  gender : VARCHAR(10)
+  date_of_birth : DATE
+  address : VARCHAR(255)
+  emergency_contact : VARCHAR(50)
+  contact_phone : VARCHAR(20)
+  medical_history : TEXT
+  allergies : TEXT
+  updated_at : TIMESTAMP
+}
+
+' ============================================
+' === admin 表 ===
+' ============================================
+entity "admin" as admin {
+  + admin_id : INT <<PK>>
+  --
+  # user_id : INT <<FK→user.user_id, NOT NULL>>
+  admin_level : VARCHAR(50)
+  department : VARCHAR(100)
+  updated_at : TIMESTAMP
+}
+
+' ============================================
+' === doctor_patient 表（医患关系） ===
+' ============================================
+entity "doctor_patient" as dp {
+  + doctor_patient_id : INT <<PK>>
+  --
+  # doctor_id : INT <<FK→doctor.doctor_id, NOT NULL>>
+  # patient_id : INT <<FK→patient.patient_id, NOT NULL>>
+}
+
+' ============================================
+' === medical_record 表（病历主表） ===
+' ============================================
+entity "medical_record" as mr {
+  + record_id : INT <<PK>>
+  --
+  # patient_id : INT <<FK→patient.patient_id, NOT NULL>>
+  # doctor_id : INT <<FK→doctor.doctor_id, NOT NULL>>
+  # prescription_id : INT <<FK→prescription.prescription_id, NULLABLE>>
+  diagnosis : TEXT
+  symptoms : TEXT
+  chart : TEXT <<图片路径, 逗号分隔>>
+  remarks : TEXT
+  prescription : TEXT <<处方文本>>
+  status : VARCHAR(20) <<'active'|'archived'>>
+  chief_complaint : VARCHAR(500) <<主诉>>
+  present_illness : TEXT <<现病史>>
+  past_history : TEXT <<既往史>>
+  physical_exam : TEXT <<体格检查>>
+  record_status : VARCHAR(20) <<'draft'|'confirmed'|'voided'>>
+  void_reason : VARCHAR(500)
+  supplement : TEXT <<补增医嘱>>
+  total_fee : DECIMAL(10,2)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+' ============================================
+' === prescription 表 ===
+' ============================================
+entity "prescription" as pres {
+  + prescription_id : INT <<PK>>
+  --
+  # doctor_id : INT <<FK→doctor.doctor_id, NOT NULL>>
+  medication_name : VARCHAR(200)
+  dosage : VARCHAR(100)
+  frequency : VARCHAR(100)
+  duration : VARCHAR(100)
+  instructions : TEXT
+  remarks : TEXT
+  unit_price : DECIMAL(10,2)
+  total_price : DECIMAL(10,2)
+  created_at : TIMESTAMP
+}
+
+' ============================================
+' === registration 表（挂号） ===
+' ============================================
+entity "registration" as reg {
+  + registration_id : INT <<PK>>
+  --
+  # patient_id : INT <<FK→patient.patient_id, NOT NULL>>
+  # patient_user_id : INT <<FK→user.user_id, NOT NULL>>
+  # doctor_id : INT <<FK→doctor.doctor_id, NOT NULL>>
+  department : VARCHAR(100)
+  chief_complaint : VARCHAR(500)
+  queue_number : INT
+  status : VARCHAR(20) <<'waiting'|'in_progress'|'completed'|'cancelled'>>
+  registration_time : TIMESTAMP
+  consultation_time : TIMESTAMP
+  completion_time : TIMESTAMP
+}
+
+' ============================================
+' === diagnosis_template 表（诊断模板） ===
+' ============================================
+entity "diagnosis_template" as dt {
+  + template_id : INT <<PK>>
+  --
+  department : VARCHAR(100)
+  diagnosis_name : VARCHAR(200)
+  symptoms : TEXT
+  prescription_hint : TEXT
+  usage_count : INT
+}
+
+' ============================================
+' === drug_info 表（药品信息） ===
+' ============================================
+entity "drug_info" as di {
+  + drug_id : INT <<PK>>
+  --
+  drug_name : VARCHAR(200)
+  specification : VARCHAR(100)
+  unit_price : DECIMAL(10,2)
+  dosage_hint : VARCHAR(200)
+  frequency_hint : VARCHAR(100)
+  indications : TEXT
+  contraindications : TEXT
+  adverse_reactions : TEXT
+  interactions : TEXT
+}
+
+' ============================================
+' === audit_log 表（操作日志） ===
+' ============================================
+entity "audit_log" as al {
+  + log_id : INT <<PK>>
+  --
+  # record_id : INT <<FK→medical_record.record_id, NOT NULL>>
+  # user_id : INT <<FK→user.user_id, NOT NULL>>
+  username : VARCHAR(50)
+  action : VARCHAR(30) <<'confirm'|'void'|'supplement'|'archive'|'restore'>>
+  detail : TEXT
+  created_at : TIMESTAMP
+}
+
+' ============================================
+' === 关系定义 ===
+' 注意：每条线都标注了对应关系
+' ||--o{ = 1:N,  ||--|| = 1:1
+' ============================================
+
+' === user 与子表：1:1 关系 ===
+user ||--o| doctor : "user_id\n[一个用户对应零或一个医生档案]"
+user ||--o| patient : "user_id\n[一个用户对应零或一个患者档案]"
+user ||--o| admin : "user_id\n[一个用户对应零或一个管理员档案]"
+
+' === doctor_patient 多对多关系分解 ===
+doctor ||--o{ dp : "doctor_id\n[一个医生可绑定多个患者]"
+patient ||--o{ dp : "patient_id\n[一个患者可被多个医生绑定]"
+
+' === medical_record 核心关系 ===
+doctor ||--o{ mr : "doctor_id\n[一个医生书写多份病历]"
+patient ||--o{ mr : "patient_id\n[一个患者有多份病历]"
+pres ||--o| mr : "prescription_id\n[一份处方可关联零或多份病历]"
+
+' === prescription 关系 ===
+doctor ||--o{ pres : "doctor_id\n[一个医生开具多份处方]"
+
+' === registration 挂号关系 ===
+patient ||--o{ reg : "patient_id\n[一个患者可多次挂号]"
+doctor ||--o{ reg : "doctor_id\n[一个医生有多个挂号记录]"
+user ||--o{ reg : "patient_user_id\n[一个用户有多条挂号记录]"
+
+' === audit_log 关系 ===
+mr ||--o{ al : "record_id\n[一份病历有多条操作日志]"
+user ||--o{ al : "user_id\n[一个用户产生多条操作日志]"
+
+' === 独立表（无外键依赖） ===
+' diagnosis_template 和 drug_info 为独立的参考数据表
+
+note right of dp
+  <b>医患关系表说明：</b>
+  doctor_patient 是将
+  doctor 与 patient 之间
+  N:M 关系拆解为两张
+  1:N 关系的关联表。
+end note
+
+note right of mr
+  <b>病历状态流转：</b>
+  draft → confirmed → voided
+  active ↔ archived
+end note
+
+note right of reg
+  <b>挂号状态流转：</b>
+  waiting → in_progress
+         → completed
+         → cancelled
+end note
+
+@enduml

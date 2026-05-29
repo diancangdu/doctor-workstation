@@ -1,0 +1,105 @@
+@startuml 书写病历-活动图
+' ============================================
+' 医生工作站系统 — 活动图
+' 用例：新增病历（Write Medical Record）
+' ============================================
+
+skinparam backgroundColor #FEFEFE
+skinparam activity {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+  FontColor #1B5E20
+  StartColor #43A047
+  EndColor #E53935
+  BarColor #1E88E5
+}
+
+title 活动图 — 用例：医生新增病历
+
+start
+
+:【医生】登录系统，点击"接诊排队";
+
+:【系统】查询当前医生待诊队列
+--
+GET /registration/queue
+按排队序号排序;
+
+if (有待诊患者?) then (有)
+  :【医生】选择患者，点击"接诊";
+
+  :【系统】更新挂号状态为"接诊中"
+  --
+  PUT /registration/start/(id)
+  status = in_progress;
+
+  :【医生】点击"书写病历"按钮;
+
+  :【系统】跳转到新增病历页
+  --
+  携带 patientId 和 doctorId;
+
+  :【系统】加载辅助数据
+  --
+  诊断模板 GET /common/templates
+  药品信息 GET /common/drugs;
+
+  :【系统】表单就绪，模板和药品数据加载完成;
+
+  ' ===== 填写病历 =====
+  :【医生】选择诊断模板（可选，一键填充）;
+
+  if (选择了模板?) then (是)
+    :【系统】自动填入诊断、症状、处方提示;
+  else (否)
+    :【医生】手动输入诊断信息;
+  endif
+
+  :【医生】填写主诉、现病史、体格检查;
+
+  :【系统】自动填入既往史（患者病史 + 过敏史）;
+
+  :【医生】从处方库多选关联处方;
+
+  :【系统】展示处方详情（药品/剂量/频次/疗程/价格）;
+
+  if (需要上传图片?) then (是)
+    :【医生】选择图片，系统上传并显示缩略预览;
+  else (否)
+  endif
+
+  :【医生】检查并调整病历内容;
+
+  ' ===== 保存 / 确认 =====
+  if (操作选择?) then (保存草稿)
+    :【系统】校验：诊断和处方不能为空;
+    :【系统】保存病历
+    --
+    PUT /medicalRecord/add
+    record_status = draft;
+    :【系统】提示"保存成功"，返回上一页;
+
+    :【医生】回到排队页，点击"完成就诊";
+
+    :【系统】更新挂号状态
+    --
+    PUT /registration/complete/(id)
+    status = completed;
+
+    stop
+  else (直接确认)
+    :【系统】保存病历并确认
+    --
+    PUT /medicalRecord/confirm
+    record_status = confirmed;
+    :【系统】写入操作日志 (audit_log);
+    :【系统】提示"病历已确认";
+    stop
+  endif
+
+else (无)
+  :【系统】显示"暂无待诊患者";
+  stop
+endif
+
+@enduml

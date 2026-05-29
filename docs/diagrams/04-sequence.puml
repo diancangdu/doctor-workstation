@@ -1,0 +1,174 @@
+@startuml 书写病历-时序图
+' ============================================
+' 医生工作站系统 — 时序图
+' 用例：新增病历（Write Medical Record）
+' 针对"新增病历"用例，完整展示从前端到数据库的交互过程
+' ============================================
+
+skinparam backgroundColor #FEFEFE
+skinparam sequenceMessageAlign center
+skinparam participant {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+}
+
+title 时序图 — 用例：医生新增病历\n（从挂号队列到病历保存的完整流程）
+
+actor "医生" as Doctor <<actor>>
+
+' === 前端层 ===
+participant "前端\nQueuePage\n(接诊排队)" as QueuePage
+participant "前端\nAddMRPage\n(新增病历页面)" as AddMRPage
+
+' === 后端层 ===
+participant "RegistrationController\n/api/registration" as RegCtrl
+participant "MedicalRecordController\n/api/medicalRecord" as MRCtrl
+participant "CommonController\n/api/common" as CommonCtrl
+
+' === 业务层 ===
+participant "RegistrationService" as RegSvc
+participant "MedicalRecordService" as MRSvc
+
+' === 数据层 ===
+participant "RegistrationMapper\n(MyBatis XML)" as RegMapper
+participant "MedicalRecordMapper\n(MyBatis XML)" as MRMapper
+participant "DiagnosisTemplateMapper\n(MyBatis XML)" as DTMapper
+participant "DrugInfoMapper\n(MyBatis XML)" as DIMapper
+participant "AuditLogMapper\n(MyBatis XML)" as ALMapper
+
+database "MySQL\nemrs" as DB
+
+' ============================================
+' === 阶段一：医生查看待诊队列 ===
+' ============================================
+
+== 阶段一：查看待诊队列 ==
+
+Doctor -> QueuePage : 点击"接诊排队"菜单
+QueuePage -> RegCtrl : GET /registration/queue?doctorId=2
+RegCtrl -> RegSvc : getDoctorQueue(doctorId)
+RegSvc -> RegMapper : selectByDoctorId(doctorId)\nWHERE status='waiting'
+RegMapper -> DB : SELECT * FROM registration\nWHERE doctor_id=2\nAND status='waiting'\nORDER BY queue_number
+DB --> RegMapper : List<Registration>
+RegMapper --> RegSvc :
+RegSvc --> RegCtrl :
+RegCtrl --> QueuePage : {"code":"200", "data":[{挂号记录列表}]}
+QueuePage --> Doctor : 展示待诊患者队列
+
+' ============================================
+' === 阶段二：开始接诊 → 跳转病历书写 ===
+' ============================================
+
+== 阶段二：开始接诊并跳转 ==
+
+Doctor -> QueuePage : 点击某患者的"接诊"按钮
+QueuePage -> RegCtrl : PUT /registration/start/{registrationId}
+RegCtrl -> RegSvc : startConsultation(id)
+RegSvc -> RegMapper : updateStatus(id, 'in_progress')\nSET status='in_progress',\nconsultation_time=NOW()
+RegMapper -> DB : UPDATE registration\nSET status='in_progress'
+DB --> RegMapper : OK
+RegMapper --> RegSvc :
+RegSvc --> RegCtrl :
+RegCtrl --> QueuePage : 接诊成功
+QueuePage --> Doctor : 显示"书写病历"按钮
+
+Doctor -> QueuePage : 点击"书写病历"按钮
+QueuePage --> AddMRPage : 页面跳转，携带 ?patientId=3&doctorId=1
+
+' ============================================
+' === 阶段三：加载辅助数据（模板+药品） ===
+' ============================================
+
+== 阶段三：加载辅助数据 ==
+
+AddMRPage -> CommonCtrl : GET /common/templates?department=内科
+CommonCtrl -> DTMapper : selectByDepartment("内科")
+DTMapper -> DB : SELECT * FROM diagnosis_template\nWHERE department='内科'
+DB --> DTMapper : 模板列表
+DTMapper --> CommonCtrl :
+CommonCtrl --> AddMRPage : 诊断模板数据
+
+AddMRPage -> CommonCtrl : GET /common/drugs
+CommonCtrl -> DIMapper : selectAll()
+DIMapper -> DB : SELECT * FROM drug_info
+DB --> DIMapper : 药品列表
+DIMapper --> CommonCtrl :
+CommonCtrl --> AddMRPage : 药品信息数据
+
+AddMRPage -> AddMRPage : 渲染表单\n(模板下拉框、药品提示数据就绪)
+
+' ============================================
+' === 阶段四：选择患者，自动填入既往史 ===
+' ============================================
+
+== 阶段四：选择患者 ==
+
+Doctor -> AddMRPage : 患者已从挂号参数自动选中
+AddMRPage -> AddMRPage : selectPatient(patientId)\n自动填入：\n- 患者基本信息\n- 既往病史(medicalHistory)\n- 过敏史(allergies)
+
+' ============================================
+' === 阶段五：医生填写病历 ===
+' ============================================
+
+== 阶段五：填写病历信息 ==
+
+Doctor -> AddMRPage : 选择诊断模板
+AddMRPage -> AddMRPage : 一键填充诊断、症状、处方提示
+Doctor -> AddMRPage : 填写主诉、现病史、既往史\n体格检查、诊断、症状
+
+Doctor -> AddMRPage : 选择处方（可多选）
+AddMRPage -> AddMRPage : 处方区显示药品详情\n(药物名/剂量/频次/疗程/价格)
+
+Doctor -> AddMRPage : 上传病历图片（可选）
+AddMRPage -> AddMRPage : 文件逐张上传到 /upload\n路径收集到 chart[] 数组
+
+Doctor -> AddMRPage : 填写备注
+
+' ============================================
+' === 阶段六：保存病历 ===
+' ============================================
+
+== 阶段六：提交保存病历 ==
+
+Doctor -> AddMRPage : 点击"保存"按钮
+AddMRPage -> AddMRPage : 表单校验\n(患者、诊断、处方非空)
+
+AddMRPage -> MRCtrl : PUT /medicalRecord/add\nBody: {patientId, doctorId, diagnosis,\nsymptoms, chart, prescription, chiefComplaint,\npresentIllness, pastHistory, physicalExam,\nremarks, totalFee}
+MRCtrl -> MRSvc : addMedicalRecord(request)
+MRSvc -> MRMapper : insert(MedicalRecord)
+MRMapper -> DB : INSERT INTO medical_record\n(patient_id, doctor_id, diagnosis,\nsymptoms, chart, prescription,\nchief_complaint, present_illness,\npast_history, physical_exam, remarks,\nrecord_status, status, total_fee)\nVALUES (...)
+DB --> MRMapper : recordId (自增)
+MRMapper --> MRSvc :
+MRSvc --> MRCtrl :
+MRCtrl --> AddMRPage : {"code":"200", "msg":"新增成功"}
+
+AddMRPage --> Doctor : 提示"保存成功"，返回上一页
+
+' ============================================
+' === 后续：确认病历（可选） ===
+' ============================================
+
+== 阶段七：确认病历（可选） ==
+
+note over Doctor, DB
+  医生可在病历列表中对草稿病历执行"确认"操作，
+  确认时后端校验诊断和处方非空，通过后将
+  record_status 改为 confirmed，不可再编辑。
+end note
+
+Doctor -> QueuePage : 回到排队页点击"完成就诊"
+QueuePage -> RegCtrl : PUT /registration/complete/{id}
+RegCtrl -> RegSvc : completeConsultation(id)
+RegSvc -> RegMapper : 校验医患病历是否存在\n→ updateStatus(id, 'completed')
+RegMapper -> DB : CHECK medical_record EXISTS\n→ UPDATE registration SET status='completed'
+DB --> RegMapper : OK
+RegMapper --> RegSvc :
+RegSvc --> RegCtrl :
+RegCtrl --> QueuePage : 就诊完成
+QueuePage --> Doctor : 队列刷新，该患者移除
+
+@enduml

@@ -3,11 +3,11 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="usc.emrsytem.springboot.mapper.UserMapper">
+<mapper namespace="usc.doctor_workstation_system.springboot.mapper.UserMapper">
     <!-- ==========================编写sql区======================  -->
     <!--==========查询=========-->
     <!--查询所有用户-->
-    <resultMap id="userResultMap" type="usc.emrsytem.springboot.entity.User">
+    <resultMap id="userResultMap" type="usc.doctor_workstation_system.springboot.entity.User">
         <!-- 取别名、映射类型 -->
         <!--
             column: 列名
@@ -40,11 +40,11 @@
         </where>
     </select>
 
-    <select id="selectById" resultType="usc.emrsytem.springboot.entity.User">
+    <select id="selectById" resultType="usc.doctor_workstation_system.springboot.entity.User">
         select * from user where user_id = #{id}
     </select>
 
-    <resultMap id="patientResultMap" type="usc.emrsytem.springboot.entity.Patient">
+    <resultMap id="patientResultMap" type="usc.doctor_workstation_system.springboot.entity.Patient">
         <!--patient表字段映射-->
         <id column="patient_id" property="patientId" />
         <result column="user_id" property="userId" />
@@ -57,7 +57,7 @@
         <result column="medical_history" property="medicalHistory" />
         <result column="updatedAt" property="updatedAt" />
         <!--嵌套映射到User对象-->
-        <association property="user" javaType="usc.emrsytem.springboot.entity.User">
+        <association property="user" javaType="usc.doctor_workstation_system.springboot.entity.User">
             <id column="user_id" property="userId" />
             <result column="username" property="username" />
             <result column="password" property="password" />
@@ -84,7 +84,7 @@
         </where>
     </select>
 
-    <resultMap id="doctorResultMap" type="usc.emrsytem.springboot.entity.Doctor">
+    <resultMap id="doctorResultMap" type="usc.doctor_workstation_system.springboot.entity.Doctor">
         <!--doctor表字段映射-->
         <id column="doctor_id" property="doctorId" />
         <result column="user_id" property="userId" />
@@ -95,7 +95,7 @@
         <result column="experience_years" property="experienceYears" />
         <result column="updated_at" property="updatedAt" />
         <!--嵌套映射到User对象-->
-        <association property="user" javaType="usc.emrsytem.springboot.entity.User">
+        <association property="user" javaType="usc.doctor_workstation_system.springboot.entity.User">
             <id column="user_id" property="userId" />
             <result column="username" property="username" />
             <result column="password" property="password" />
@@ -109,7 +109,7 @@
     <select id="listDoctorUsers" resultMap="doctorResultMap">
         select d.*, u.* from doctor d inner join user u on d.user_id = u.user_id where u.role = 'doctor'
     </select>
-    <resultMap id="adminResultMap" type="usc.emrsytem.springboot.entity.Admin">
+    <resultMap id="adminResultMap" type="usc.doctor_workstation_system.springboot.entity.Admin">
         <!--admin表字段映射-->
         <id column="admin_id" property="adminId" />
         <result column="user_id" property="userId" />
@@ -117,7 +117,7 @@
         <result column="department" property="department" />
         <result column="updated_at" property="updatedAt" />
         <!--嵌套映射到User对象-->
-        <association property="user" javaType="usc.emrsytem.springboot.entity.User">
+        <association property="user" javaType="usc.doctor_workstation_system.springboot.entity.User">
             <id column="user_id" property="userId" />
             <result column="username" property="username" />
             <result column="password" property="password" />
@@ -132,22 +132,22 @@
         select a.*, u.* from admin a inner join user u on a.user_id = u.user_id where u.role = 'admin'
     </select>
     <!--登录-->
-    <select id="getByPhoneAndPassword" resultType="usc.emrsytem.springboot.entity.User">
+    <select id="getByPhoneAndPassword" resultType="usc.doctor_workstation_system.springboot.entity.User">
         select * from user where phone_number = #{phoneNumber} and password = #{password}
     </select>
-    <select id="getByPhone" resultType="usc.emrsytem.springboot.entity.User">
+    <select id="getByPhone" resultType="usc.doctor_workstation_system.springboot.entity.User">
         select * from user where phone_number = #{phoneNumber}
     </select>
-    <select id="getUserId" resultType="usc.emrsytem.springboot.entity.User">
+    <select id="getUserId" resultType="usc.doctor_workstation_system.springboot.entity.User">
         select * from user where user_id = #{userId}
     </select>
-    <select id="getPatientById" resultType="usc.emrsytem.springboot.entity.Patient">
+    <select id="getPatientById" resultType="usc.doctor_workstation_system.springboot.entity.Patient">
         select * from patient where user_id = #{userId}
     </select>
-    <select id="getDoctorById" resultType="usc.emrsytem.springboot.entity.Doctor">
+    <select id="getDoctorById" resultType="usc.doctor_workstation_system.springboot.entity.Doctor">
         select * from doctor where user_id = #{userId}
     </select>
-    <select id="getAdminById" resultType="usc.emrsytem.springboot.entity.Admin">
+    <select id="getAdminById" resultType="usc.doctor_workstation_system.springboot.entity.Admin">
         select * from admin where user_id = #{userId}
     </select>
 

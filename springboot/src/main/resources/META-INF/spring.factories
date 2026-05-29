@@ -1,1 +1,1 @@
-org.springframework.boot.env.EnvironmentPostProcessor=usc.emrsytem.springboot.config.ProjectConfig
+org.springframework.boot.env.EnvironmentPostProcessor=usc.doctor_workstation_system.springboot.config.ProjectConfig

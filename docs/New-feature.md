@@ -19,6 +19,10 @@
 | 13 | 归档导出统一 CSV | ExcelUtil.java · MedicalRecordService.java | [→](#13-归档导出统一-csv) |
 | 14 | 实时时钟显示 | AppAside.vue | [→](#14-实时时钟显示) |
 | 15 | 挂号实时录入按钮 | RegistrationManage.vue | [→](#15-挂号实时录入按钮) |
+| 16 | 启动重置登录状态（TokenSecret） | TokenSecret.java · TokenUtils.java · JwtInterceptor.java | [→](#16-启动重置登录状态tokensecret) |
+| 17 | 包名重构 | 61 个 Java 文件 · 8 个 Mapper XML · pom.xml · spring.factories | [→](#17-包名重构-uscemrsystem--uscdws) |
+| 18 | UML 系统设计文档 | 5 张 PlantUML 图 | [→](#18-uml-系统设计文档) |
+| 19 | README 系统介绍完善 | README.md | [→](#19-readme-系统介绍完善) |
 
 ---
 
@@ -36,7 +40,7 @@
 
 | 层级 | 文件 | 操作 |
 |------|------|------|
-| 后端 | [RecordRequest.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/request/RecordRequest.java) | 修改：增加 `userId` 字段 |
+| 后端 | [RecordRequest.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/request/RecordRequest.java) | 修改：增加 `userId` 字段 |
 | 后端 | [MedicalRecord.xml](../springboot/src/main/resources/mapper/MedicalRecord.xml) | 修改：JOIN patient 表按 userId 过滤 |
 | 前端 | [MyMedicalRecord.vue](../src/views/MedicalRecord/MyMedicalRecord.vue) | 新建：患者病历页面 |
 | 前端 | [router/index.js](../src/router/index.js) | 修改：新增路由 |
@@ -79,13 +83,13 @@
 |------|------|------|
 | 数据库 | [sql/migration-archive.sql](../sql/migration-archive.sql) | 新建：ALTER TABLE 增加 status 字段 |
 | 数据库 | [sql/init.sql](../sql/init.sql) | 修改：建表语句同步增加 status |
-| 后端 | [MedicalRecord.java](../springboot/src/main/java/usc/emrsytem/springboot/entity/MedicalRecord.java) | 修改：实体增加 `status` |
-| 后端 | [RecordRequest.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/request/RecordRequest.java) | 修改：增加 `status` 查询参数 |
-| 后端 | [MedicalRecordMapper.java](../springboot/src/main/java/usc/emrsytem/springboot/mapper/MedicalRecordMapper.java) | 修改：增加 archive/restore 方法 |
+| 后端 | [MedicalRecord.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/entity/MedicalRecord.java) | 修改：实体增加 `status` |
+| 后端 | [RecordRequest.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/request/RecordRequest.java) | 修改：增加 `status` 查询参数 |
+| 后端 | [MedicalRecordMapper.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/mapper/MedicalRecordMapper.java) | 修改：增加 archive/restore 方法 |
 | 后端 | [MedicalRecord.xml](../springboot/src/main/resources/mapper/MedicalRecord.xml) | 修改：查询加 status 过滤，新增归档/恢复 SQL |
-| 后端 | [IMedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/IMedicalRecordService.java) | 修改：接口增加方法 |
-| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/MedicalRecordService.java) | 修改：实现归档/恢复逻辑 |
-| 后端 | [MedicalRecordController.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/MedicalRecordController.java) | 修改：新增 archive/restore 端点 |
+| 后端 | [IMedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/IMedicalRecordService.java) | 修改：接口增加方法 |
+| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/MedicalRecordService.java) | 修改：实现归档/恢复逻辑 |
+| 后端 | [MedicalRecordController.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/MedicalRecordController.java) | 修改：新增 archive/restore 端点 |
 | 前端 | [ViewMedicalRecord.vue](../src/views/MedicalRecord/ViewMedicalRecord.vue) | 修改：表格增状态列，删除改归档，增加恢复和"查看已归档"切换 |
 
 ### 新增 API
@@ -150,12 +154,12 @@
 | 层级 | 文件 | 操作 |
 |------|------|------|
 | 数据库 | [registration 表](../sql/init.sql) | 新建表 |
-| 后端 | [Registration.java](../springboot/src/main/java/usc/emrsytem/springboot/entity/Registration.java) | 新建实体 |
-| 后端 | [RegistrationMapper.java](../springboot/src/main/java/usc/emrsytem/springboot/mapper/RegistrationMapper.java) | 新建 Mapper |
+| 后端 | [Registration.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/entity/Registration.java) | 新建实体 |
+| 后端 | [RegistrationMapper.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/mapper/RegistrationMapper.java) | 新建 Mapper |
 | 后端 | [Registration.xml](../springboot/src/main/resources/mapper/Registration.xml) | 新建 SQL 映射 |
-| 后端 | [IRegistrationService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/IRegistrationService.java) | 新建接口 |
-| 后端 | [RegistrationService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/RegistrationService.java) | 新建实现 |
-| 后端 | [RegistrationController.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/RegistrationController.java) | 新建控制器 |
+| 后端 | [IRegistrationService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/IRegistrationService.java) | 新建接口 |
+| 后端 | [RegistrationService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/RegistrationService.java) | 新建实现 |
+| 后端 | [RegistrationController.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/RegistrationController.java) | 新建控制器 |
 | 前端 | [DoctorQueue.vue](../src/views/Registration/DoctorQueue.vue) | 新建：医生接诊排队页 |
 | 前端 | [RegistrationManage.vue](../src/views/Registration/RegistrationManage.vue) | 新建：挂号管理页 |
 | 前端 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | 修改：支持从排队页传入 patientId 自动选中 |
@@ -297,9 +301,9 @@
 
 | 层级 | 文件 | 操作 |
 |------|------|------|
-| 后端 | [MedicalRecordController.java](../springboot/src/main/java/usc/emrsytem/springboot/controller/MedicalRecordController.java) | 新增 `GET /getById/{id}` |
-| 后端 | [IMedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/IMedicalRecordService.java) | 新增 `getById` |
-| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/MedicalRecordService.java) | 实现 `getById` |
+| 后端 | [MedicalRecordController.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/controller/MedicalRecordController.java) | 新增 `GET /getById/{id}` |
+| 后端 | [IMedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/IMedicalRecordService.java) | 新增 `getById` |
+| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/MedicalRecordService.java) | 实现 `getById` |
 | 后端 | [MedicalRecord.xml](../springboot/src/main/resources/mapper/MedicalRecord.xml) | update 补 chart 字段 |
 | 前端 | [ViewMedicalRecord.vue](../src/views/MedicalRecord/ViewMedicalRecord.vue) | "编辑"按钮跳转 AddMedicalRecord?edit=id |
 | 前端 | [AddMedicalRecord.vue](../src/views/MedicalRecord/AddMedicalRecord.vue) | 新增 editMode 支持：检测 ?edit、加载已有数据预填、提交时调 update 接口 |
@@ -405,8 +409,8 @@
 
 | 层级 | 文件 | 操作 |
 |------|------|------|
-| 后端 | [ExcelUtil.java](../springboot/src/main/java/usc/emrsytem/springboot/utils/ExcelUtil.java) | 新建：CSV 导出工具 |
-| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/emrsytem/springboot/service/impl/MedicalRecordService.java) | 修改：归档时导出 CSV，恢复时追加记录 |
+| 后端 | [ExcelUtil.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/utils/ExcelUtil.java) | 新建：CSV 导出工具 |
+| 后端 | [MedicalRecordService.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/service/impl/MedicalRecordService.java) | 修改：归档时导出 CSV，恢复时追加记录 |
 | 前端 | [ViewMedicalRecord.vue](../src/views/MedicalRecord/ViewMedicalRecord.vue) | 修改：归档确认提示文字 |
 
 ### 功能要点
@@ -457,3 +461,114 @@
 
 - 挂号管理页新增"挂号实时录入"按钮
 - 位于"新建挂号"旁边，暂未绑定事件
+
+---
+
+## 16. 启动重置登录状态（TokenSecret）
+
+### 需求背景
+
+用户每次重启后端服务后，浏览器缓存的旧 JWT token 仍然有效，导致登录态不重置。需要实现"每次启动项目时自动清除所有已登录用户的登录状态"。
+
+### 设计方案
+
+新增 `TokenSecret` 组件，在 Spring 容器启动时生成一个随机 UUID。JWT 签名由原来的 `HMAC256(password)` 改为 `HMAC256(password + TokenSecret)`。每次重启生成新密钥，所有旧 token 自动失效。
+
+### 改动文件
+
+| 层级 | 文件 | 操作 |
+|------|------|------|
+| 后端 | [TokenSecret.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/common/TokenSecret.java) | 新建：`static final` 随机密钥 |
+| 后端 | [TokenUtils.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/utils/TokenUtils.java) | 修改：签名密钥加入 TokenSecret |
+| 后端 | [JwtInterceptor.java](../springboot/src/main/java/usc/doctor_workstation_system/springboot/common/JwtInterceptor.java) | 修改：验证密钥加入 TokenSecret，错误提示改为"服务器已重启" |
+
+### 功能要点
+
+- 使用 `static final String SECRET = UUID.randomUUID().toString()` 内联初始化，避免 CGLIB 代理触发多次构造函数
+- Token 签名 = `HMAC256(用户BCrypt密码 + 启动密钥)`
+- 每次重启→新密钥→所有旧 token 验证失败→前端收到 401→自动跳转登录页
+
+### 数据流
+
+```
+服务启动 → TokenSecret 生成随机 UUID
+  → 用户登录 → TokenUtils.genToken(userId, password + TokenSecret)
+  → 每次 API 请求 → JwtInterceptor 验证 password + TokenSecret
+  → 重启后 TokenSecret 变化 → 验证失败 → 401 → 跳转 /login
+```
+
+---
+
+## 17. 包名重构：usc.emrsystem → usc.doctor_workstation_system
+
+### 需求背景
+
+项目文件夹从 `EMRSystem` 重命名为 `doctor-workstation-system`，Java 包名同步更新以保持一致性。
+
+### 改动文件
+
+| 层级 | 文件 | 操作 |
+|------|------|------|
+| 目录 | `java/usc/emrsystem/` → `java/usc/doctor_workstation_system/` | 重命名 |
+| 后端 | 61 个 Java 源文件 | 修改：`package` 和 `import` 声明 |
+| 后端 | 8 个 MyBatis Mapper XML | 修改：`namespace` 属性 |
+| 后端 | [pom.xml](../springboot/pom.xml) | 修改：`groupId` |
+| 后端 | [spring.factories](../springboot/src/main/resources/META-INF/spring.factories) | 修改：全限定类名 |
+| 文档 | [New-feature.md](New-feature.md) · [all-bug.md](all-bug.md) | 修改：路径引用 |
+
+### 功能要点
+
+- 全项目文本替换 `usc.emrsystem` → `usc.doctor_workstation_system`
+- `git mv` 保留下划线命名目录结构
+- 文档中的 `usc/emrsystem/` 路径同步更新
+
+---
+
+## 18. UML 系统设计文档
+
+### 需求背景
+
+需要完整的系统建模文档，包含用例图、ER 图、类图、时序图和活动图。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [docs/diagrams/](../docs/diagrams/) 目录下全部 | 新建 |
+
+### 图表清单
+
+| 图表 | 文件 | 说明 |
+|------|------|------|
+| 用例图 | [01-usecase.puml](../docs/diagrams/01-usecase.puml) | 三大角色完整功能用例及依赖关系 |
+| ER 图 | [02-er.puml](../docs/diagrams/02-er.puml) | 11 张表、主外键、表间关系（IE 表示法） |
+| 类图 | [03-class.puml](../docs/diagrams/03-class.puml) | 实体层+服务层+控制层，含多重度标注 |
+| 时序图 | [04-sequence.puml](../docs/diagrams/04-sequence.puml) | "新增病历"用例 7 阶段完整交互 |
+| 活动图 | [05-activity.puml](../docs/diagrams/05-activity.puml) | "新增病历"业务活动流程（含分支） |
+
+### 功能要点
+
+- PlantUML 格式，支持 `.puml` 源文件修改后重新生成 PNG
+- 使用 PlantUML v1.2024.8 渲染：`java -jar plantuml.jar -tpng -charset UTF-8 *.puml`
+- 每张图附带文字说明，记录在对应的 PUML 注释中
+
+---
+
+## 19. README 系统介绍完善
+
+### 需求背景
+
+README 原有介绍过于简略，需补充系统背景、角色职责、核心能力概述。
+
+### 改动文件
+
+| 文件 | 操作 |
+|------|------|
+| [README.md](../README.md) | 修改 |
+
+### 功能要点
+
+- 新增**业务背景**：描述挂号→接诊→病历→处方→就诊全门诊链路
+- 新增**角色职责**表：管理员/医生/患者各自核心职责
+- 新增**核心能力**：结构化电子病历、诊断模板、病历状态机、CSV 归档、病历对比、多图上传、挂号队列、JWT 认证
+- 新增**系统设计文档**章节：5 张 UML 图链接及重新生成命令

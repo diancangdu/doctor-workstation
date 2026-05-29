@@ -1,7 +1,7 @@
 ﻿操作,病历编号,患者,主治医生,主诉,现病史,既往史,体格检查,诊断,症状,处方,备注,就诊时间,操作时间
 归档,13,患者ID:1,医生ID:1,,,,,5,67,"2
-阿莫西林胶囊 0.5g 每日3次 7天",[归档文件:e:\TEMP\EMRSystem\springboot/../docs/archives/病历归档_13_20260529_003827.csv],2026-05-29 00:10:35.0,2026-05-29 00:41:52
-归档,11,患者ID:4,医生ID:1,,,,,腰椎间盘突出,腰痛、下肢放射痛、麻木,双氯芬酸钠缓释片 75mg 每日1次; 甲钴胺片 0.5mg 每日3次; 卧硬板床,[归档文件:e:\TEMP\EMRSystem\springboot/../docs/archives/病历归档_11_20260529_003837.csv],2026-05-27 20:29:47.0,2026-05-29 00:41:56
+阿莫西林胶囊 0.5g 每日3次 7天",[归档文件:e:\TEMP\doctor-workstation-system\springboot/../docs/archives/病历归档_13_20260529_003827.csv],2026-05-29 00:10:35.0,2026-05-29 00:41:52
+归档,11,患者ID:4,医生ID:1,,,,,腰椎间盘突出,腰痛、下肢放射痛、麻木,双氯芬酸钠缓释片 75mg 每日1次; 甲钴胺片 0.5mg 每日3次; 卧硬板床,[归档文件:e:\TEMP\doctor-workstation-system\springboot/../docs/archives/病历归档_11_20260529_003837.csv],2026-05-27 20:29:47.0,2026-05-29 00:41:56
 恢复,13,患者ID:1,医生ID:1,,,,,5,67,"2
-阿莫西林胶囊 0.5g 每日3次 7天",[归档文件:e:\TEMP\EMRSystem\springboot/../docs/archives/病历归档_13_20260529_003827.csv] [归档文件:e:\TEMP\EMRSystem\springboot/../docs/archives/archives.csv],2026-05-29 00:10:35.0,2026-05-29 00:42:15
-恢复,11,患者ID:4,医生ID:1,,,,,腰椎间盘突出,腰痛、下肢放射痛、麻木,双氯芬酸钠缓释片 75mg 每日1次; 甲钴胺片 0.5mg 每日3次; 卧硬板床,[归档文件:e:\TEMP\EMRSystem\springboot/../docs/archives/病历归档_11_20260529_003837.csv] [归档文件:e:\TEMP\EMRSystem\springboot/../docs/archives/archives.csv],2026-05-27 20:29:47.0,2026-05-29 00:42:16
+阿莫西林胶囊 0.5g 每日3次 7天",[归档文件:e:\TEMP\doctor-workstation-system\springboot/../docs/archives/病历归档_13_20260529_003827.csv] [归档文件:e:\TEMP\doctor-workstation-system\springboot/../docs/archives/archives.csv],2026-05-29 00:10:35.0,2026-05-29 00:42:15
+恢复,11,患者ID:4,医生ID:1,,,,,腰椎间盘突出,腰痛、下肢放射痛、麻木,双氯芬酸钠缓释片 75mg 每日1次; 甲钴胺片 0.5mg 每日3次; 卧硬板床,[归档文件:e:\TEMP\doctor-workstation-system\springboot/../docs/archives/病历归档_11_20260529_003837.csv] [归档文件:e:\TEMP\doctor-workstation-system\springboot/../docs/archives/archives.csv],2026-05-27 20:29:47.0,2026-05-29 00:42:16

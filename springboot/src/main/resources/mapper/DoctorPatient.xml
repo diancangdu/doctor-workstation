@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="usc.emrsytem.springboot.mapper.DoctorPatientMapper">
+<mapper namespace="usc.doctor_workstation_system.springboot.mapper.DoctorPatientMapper">
     <!--添加-->
     <insert id="addDoctorPatient">
         insert into doctor_patient (doctor_id, patient_id) values (#{doctorId}, #{patientId})
@@ -11,10 +11,10 @@
 
 
     <!--查询-->
-    <select id="getByDocAndPatId" resultType="usc.emrsytem.springboot.entity.DoctorPatient">
+    <select id="getByDocAndPatId" resultType="usc.doctor_workstation_system.springboot.entity.DoctorPatient">
         select * from doctor_patient where doctor_id = #{doctorId} and patient_id = #{patientId}
     </select>
-    <select id="getByDoctorId" resultType="usc.emrsytem.springboot.entity.DoctorPatient">
+    <select id="getByDoctorId" resultType="usc.doctor_workstation_system.springboot.entity.DoctorPatient">
         select * from doctor_patient where doctor_id = #{doctorId}
     </select>
     <select id="getByDoctorIdCount" resultType="java.lang.Integer">

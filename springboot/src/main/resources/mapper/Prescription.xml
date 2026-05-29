@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="usc.emrsytem.springboot.mapper.PrescriptionMapper">
+<mapper namespace="usc.doctor_workstation_system.springboot.mapper.PrescriptionMapper">
 
     <!--添加-->
     <insert id="addPrescription">
@@ -12,7 +12,7 @@
     </insert>
 
     <!--查询-->
-    <select id="listPrescription" resultType="usc.emrsytem.springboot.entity.Prescription">
+    <select id="listPrescription" resultType="usc.doctor_workstation_system.springboot.entity.Prescription">
         select * from prescription
         <where>
         <if test="doctorId != null and doctorId != ''">

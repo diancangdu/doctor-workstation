@@ -1,0 +1,168 @@
+@startuml 医生工作站系统用例图
+' ============================================
+' 医生工作站系统 — 完整用例图
+' ============================================
+
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+  FontColor #0D47A1
+}
+
+left to right direction
+
+' === Actors ===
+actor "管理员" as Admin <<系统管理员>>
+actor "医生" as Doctor <<门诊医生>>
+actor "患者" as Patient <<就诊患者>>
+
+' === Use Case Packages ===
+rectangle "医生工作站系统" as System {
+
+  ' === 用户认证模块 ===
+  package "用户认证" as Auth {
+    usecase "登录" as UC_Login
+    usecase "修改密码" as UC_ChangePwd
+    usecase "个人中心" as UC_Profile
+  }
+
+  ' === 挂号管理模块 ===
+  package "挂号管理" as RegModule {
+    usecase "创建挂号" as UC_CreateReg
+    usecase "查询挂号列表" as UC_ListReg
+    usecase "取消挂号" as UC_CancelReg
+    usecase "接诊排队" as UC_Queue
+    usecase "开始接诊" as UC_StartConsult
+    usecase "完成就诊" as UC_CompleteConsult
+  }
+
+  ' === 病历管理模块 ===
+  package "病历管理" as MRModule {
+    usecase "新增病历\n(含模板/药品提示)" as UC_AddMR
+    usecase "编辑病历草稿" as UC_EditMR
+    usecase "查询病历" as UC_QueryMR
+    usecase "查看病历详情" as UC_ViewMR
+    usecase "确认病历" as UC_ConfirmMR
+    usecase "作废病历" as UC_VoidMR
+    usecase "补增医嘱" as UC_SupplementMR
+    usecase "归档病历" as UC_ArchiveMR
+    usecase "恢复病历" as UC_RestoreMR
+    usecase "病历对比" as UC_CompareMR
+    usecase "打印病历" as UC_PrintMR
+    usecase "查看操作日志" as UC_AuditLog
+  }
+
+  ' === 处方管理模块 ===
+  package "处方管理" as PresModule {
+    usecase "新增处方" as UC_AddPres
+    usecase "查询处方" as UC_QueryPres
+    usecase "删除处方" as UC_DeletePres
+  }
+
+  ' === 用户管理模块 ===
+  package "用户管理" as UserModule {
+    usecase "查询用户" as UC_QueryUser
+    usecase "添加用户\n(患者/医生/管理员)" as UC_AddUser
+    usecase "修改用户信息" as UC_UpdateUser
+    usecase "删除用户" as UC_DeleteUser
+  }
+
+  ' === 医患关系模块 ===
+  package "医患关系" as DPModule {
+    usecase "绑定医患关系" as UC_BindDP
+    usecase "解除医患关系" as UC_UnbindDP
+    usecase "查看名下患者" as UC_ViewPatients
+  }
+
+  ' === 辅助功能模块 ===
+  package "辅助功能" as UtilModule {
+    usecase "上传病历图片" as UC_Upload
+    usecase "查看诊断模板" as UC_Template
+    usecase "查询药品信息" as UC_DrugInfo
+  }
+
+  ' === 患者端功能 ===
+  package "患者端" as PatientModule {
+    usecase "查看我的病历" as UC_MyRecord
+  }
+}
+
+' === 管理员关联 ===
+Admin --> UC_Login
+Admin --> UC_ChangePwd
+Admin --> UC_Profile
+Admin --> UC_CreateReg
+Admin --> UC_ListReg
+Admin --> UC_CancelReg
+Admin --> UC_QueryMR
+Admin --> UC_ViewMR
+Admin --> UC_ArchiveMR
+Admin --> UC_RestoreMR
+Admin --> UC_CompareMR
+Admin --> UC_PrintMR
+Admin --> UC_AuditLog
+Admin --> UC_QueryPres
+Admin --> UC_QueryUser
+Admin --> UC_AddUser
+Admin --> UC_UpdateUser
+Admin --> UC_DeleteUser
+Admin --> UC_BindDP
+Admin --> UC_UnbindDP
+Admin --> UC_ViewPatients
+Admin --> UC_Upload
+Admin --> UC_Template
+Admin --> UC_DrugInfo
+
+' === 医生关联 ===
+Doctor --> UC_Login
+Doctor --> UC_ChangePwd
+Doctor --> UC_Profile
+Doctor --> UC_CreateReg
+Doctor --> UC_ListReg
+Doctor --> UC_Queue
+Doctor --> UC_StartConsult
+Doctor --> UC_CompleteConsult
+Doctor --> UC_AddMR
+Doctor --> UC_EditMR
+Doctor --> UC_QueryMR
+Doctor --> UC_ViewMR
+Doctor --> UC_ConfirmMR
+Doctor --> UC_VoidMR
+Doctor --> UC_SupplementMR
+Doctor --> UC_ArchiveMR
+Doctor --> UC_RestoreMR
+Doctor --> UC_CompareMR
+Doctor --> UC_PrintMR
+Doctor --> UC_AddPres
+Doctor --> UC_QueryPres
+Doctor --> UC_QueryUser
+Doctor --> UC_BindDP
+Doctor --> UC_UnbindDP
+Doctor --> UC_ViewPatients
+Doctor --> UC_Upload
+Doctor --> UC_Template
+Doctor --> UC_DrugInfo
+
+' === 患者关联 ===
+Patient --> UC_Login
+Patient --> UC_ChangePwd
+Patient --> UC_Profile
+Patient --> UC_MyRecord
+
+' === Use Case 依赖关系 ===
+UC_StartConsult ..> UC_Queue : <<include>>
+UC_CompleteConsult ..> UC_Queue : <<include>>
+UC_ConfirmMR ..> UC_AddMR : <<include>>
+UC_VoidMR ..> UC_AddMR : <<include>>
+UC_SupplementMR ..> UC_AddMR : <<include>>
+UC_EditMR ..> UC_QueryMR : <<include>>
+UC_ViewMR ..> UC_AuditLog : <<extend>>
+UC_ArchiveMR ..> UC_ViewMR : <<extend>>
+UC_RestoreMR ..> UC_ViewMR : <<extend>>
+
+' === 角色泛化 ===
+Admin --|> Doctor : 权限继承\n管理员拥有医生全部权限
+
+@enduml

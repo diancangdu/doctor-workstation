@@ -1,6 +1,29 @@
 # 医生工作站系统
 
-基于 Vue 2 + Spring Boot + MyBatis + MySQL 的医生工作站系统，覆盖挂号、接诊、病历书写、处方开具全流程，支持管理员、医生、患者三种角色。
+基于 Vue 2 + Spring Boot + MyBatis + MySQL 的门（急）诊医生工作站系统，覆盖"挂号 → 接诊排队 → 病历书写 → 处方开具 → 完成就诊"全门诊流程，支持**管理员**、**医生**、**患者**三种角色协同工作。
+
+### 业务背景
+
+系统模拟医院门诊场景下的核心诊疗链路：患者先通过挂号进入医生的待诊队列，医生按排队顺序接诊，在结构化病历表单中书写主诉、现病史、体格检查等内容，借助诊断模板和药品信息辅助录入，开具处方后完成本次就诊。病历支持草稿编辑、确认锁定、作废留痕、归档导出、历次就诊对比等完整生命周期管理。
+
+### 角色职责
+
+| 角色 | 核心职责 |
+|------|----------|
+| **管理员** | 管理全部用户（增删改查）、创建挂号、查询病历/处方、管理医患关系、查看操作日志 |
+| **医生** | 接诊排队、书写/编辑/确认/作废病历、开具处方、查看名下患者、病历对比、归档恢复 |
+
+
+### 核心能力
+
+- **结构化电子病历** — 主诉、现病史、既往史、体格检查、诊断、处方六大区域，符合门（急）诊病历书写规范
+- **诊断模板与药品提示** — 20 个科室诊断模板一键填充，20 种药品自动提示用法/禁忌/相互作用
+- **病历状态机** — 草稿 → 确认锁定 → 作废留因，全操作记录审计日志
+- **CSV 归档** — 归档病历自动导出到本地 CSV，支持恢复
+- **病历对比** — 同一患者两次历次就诊的 10 个关键字段并排对比，标注差异
+- **多图上传** — 病历支持上传多张检查图片，缩略预览 + 放大查看
+- **挂号队列** — 按状态优先级 + 排队序号排序，医生端实时待诊列表
+- **JWT 无状态认证** — Token 2 小时有效期，密码变更即时失效
 
 > 原型来源：[iCaaat/EMRSystem](https://github.com/iCaaat/EMRSystem)
 
@@ -17,10 +40,10 @@
 ## 项目结构
 
 ```
-EMRSystem/
+doctor-workstation-system/
 ├── springboot/                 # Spring Boot 后端
 │   └── src/main/
-│       ├── java/usc/emrsytem/springboot/
+│       ├── java/usc/doctor_workstation_system/springboot/
 │       │   ├── controller/     # 接口控制器
 │       │   ├── service/        # 业务逻辑
 │       │   ├── mapper/         # MyBatis 数据访问
@@ -43,7 +66,11 @@ EMRSystem/
 │   ├── router/                 # 路由配置
 │   └── utils/                  # 工具函数（axios 封装）
 ├── sql/                        # 数据库初始化脚本
-├── docs/                       # Bug 修复文档
+├── docs/                       # 项目文档
+│   ├── diagrams/               # UML 设计文档（用例/ER/类/时序/活动图）
+│   ├── archives/               # 病历归档 CSV
+│   ├── all-bug.md              # Bug 修复记录（25 个）
+│   └── New-feature.md          # 新增功能记录（19 个）
 └── README.md
 ```
 
@@ -62,7 +89,7 @@ CREATE DATABASE IF NOT EXISTS emrs DEFAULT CHARSET utf8mb4;
 ### 2. 安装 Node.js 并安装前端依赖
 
 ```bash
-cd EMRSystem
+cd doctor-workstation-system
 npm install
 ```
 
@@ -348,6 +375,23 @@ INSERT INTO patient (user_id, gender, date_of_birth, address, emergency_contact,
 | 查询用户 | ✓ | ✓ | ✗ | 查看所有用户信息 |
 | 添加用户 | ✓ | ✗ | ✗ | 创建新用户（患者/医生/管理员） |
 | 删除用户 | ✓ | ✗ | ✗ | 删除患者或医生账号 |
+
+## 系统设计文档
+
+UML 建模文件位于 [docs/diagrams/](docs/diagrams/)，包含 PlantUML 源文件（`.puml`）和导出的图片（`.png`）。
+
+| 图表 | PNG | PUML 源文件 | 说明 |
+|------|-----|-------------|------|
+| 用例图 | [png](docs/diagrams/医生工作站系统用例图.png) | [puml](docs/diagrams/01-usecase.puml) | 管理员、医生、患者三种角色的完整功能用例及其依赖关系 |
+| ER 图 | [png](docs/diagrams/医生工作站系统ER图.png) | [puml](docs/diagrams/02-er.puml) | 11 张数据库表的字段、主键、外键及表间关系（IE 表示法） |
+| 类图 | [png](docs/diagrams/医生工作站系统类图.png) | [puml](docs/diagrams/03-class.puml) | 实体层、服务层、控制层的类结构及多重度标注 |
+| 时序图 | [png](docs/diagrams/书写病历-时序图.png) | [puml](docs/diagrams/04-sequence.puml) | "新增病历"用例的完整时序交互（7 个阶段） |
+| 活动图 | [png](docs/diagrams/书写病历-活动图.png) | [puml](docs/diagrams/05-activity.puml) | "新增病历"用例的业务活动流程（含分支判断） |
+
+> **如何重新生成：** 下载 [PlantUML](https://plantuml.com/download) jar，执行：
+> ```bash
+> java -jar plantuml.jar -tpng -charset UTF-8 docs/diagrams/*.puml
+> ```
 
 ## 配置说明
 
